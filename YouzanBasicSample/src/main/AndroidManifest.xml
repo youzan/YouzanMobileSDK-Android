@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright (C) 2017 youzanyun.com, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<manifest package="com.youzanyun.sdk.sample.basic"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 允许应用程序联网-->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 检测联网方式, 区分用户设备使用的是2G、3G或是WiFi -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- 外部存储写入权限 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <!--为了更好的体验需要获取地理信息的权限 (以下非必须权限) -->
+    <uses-permission android:name="android.permission.ACCESS_GPS"/>
+    <uses-permission android:name="android.permission.ACCESS_ASSISTED_GPS"/>
+    <uses-permission android:name="android.permission.ACCESS_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <application
+        android:name=".MyApplication"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!--请勿修改YouzanActivity的launchMode-->
+        <activity android:name=".YouzanActivity"/>
+
+    </application>
+
+</manifest>
