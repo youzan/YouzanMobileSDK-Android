@@ -7,9 +7,9 @@
 
 ## 有赞云App SDK(Android端)
 
-有赞云AppSDK是为移动端应用打造的电商交易系统, 将有赞的交易服务在APP内轻松集成.
+有赞云AppSDK是为移动端应用打造的电商交易系统, 将有赞的交易服务在APP内轻松集成.
 
-有赞AppSDK提供两种版本: [**基础版**](get-start.md#basic-sdk)和[**原生版**](get-start.md#hybrid-sdk).
+有赞AppSDK提供两种版本: **基础版**和**原生版**.
 
 ***两者的区别***:
 
@@ -39,13 +39,13 @@ allprojects {
 
 在子项目build.gradle的dependencies中根据需求引入依赖:
 
-### 基础版SDK{#basic-sdk}
+### 基础版SDK
 
 ``` groove
 compile 'com.youzanyun.open.mobile:basic:5.1.2'
 ```
 
-### 原生版SDK{#hybrid-sdk}
+### 原生版SDK
 
 ``` groove
 compile 'com.youzanyun.open.mobile:hybrid:5.1.2'
