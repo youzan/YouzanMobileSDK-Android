@@ -42,20 +42,18 @@ allprojects {
 ### 基础版SDK
 
 ``` groove
-compile 'com.youzanyun.open.mobile:basic:5.1.2'
+compile 'com.youzanyun.open.mobile:basic:5.2.0'
 ```
 
 ### 原生版SDK
 
 ``` groove
-compile 'com.youzanyun.open.mobile:hybrid:5.1.2'
+compile 'com.youzanyun.open.mobile:hybrid:5.2.0'
 ```
 
 ## 文档
 
-[在线浏览](https://yz-lachang.gitbooks.io/youzan-sdk-android-document/)
-
-[下载PDF](https://www.gitbook.com/download/pdf/book/yz-lachang/youzan-sdk-android-document/)
+[下载PDF](https://b.yzcdn.cn/youzanyun/appsdk/Youzan-SDK-Android-Doc-v5.2.0.pdf)
 
 ## 交流&反馈
 
