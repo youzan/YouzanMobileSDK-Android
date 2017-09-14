@@ -21,7 +21,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.youzan.sdk.YouzanSDK;
+import com.youzan.androidsdk.YouzanSDK;
+
 
 public class MainActivity extends Activity implements View.OnClickListener {
 

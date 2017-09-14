@@ -19,6 +19,7 @@ package com.youzanyun.sdk.sample.basic;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -28,12 +29,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.youzan.sdk.event.AbsAuthEvent;
-import com.youzan.sdk.event.AbsChooserEvent;
-import com.youzan.sdk.event.AbsShareEvent;
-import com.youzan.sdk.event.AbsStateEvent;
-import com.youzan.sdk.model.goods.GoodsShareModel;
-import com.youzan.sdk.web.plugin.YouzanBrowser;
+import com.youzan.androidsdk.basic.YouzanBrowser;
+import com.youzan.androidsdk.event.AbsAuthEvent;
+import com.youzan.androidsdk.event.AbsChooserEvent;
+import com.youzan.androidsdk.event.AbsShareEvent;
+import com.youzan.androidsdk.event.AbsStateEvent;
+import com.youzan.androidsdk.model.goods.GoodsShareModel;
+
 
 /**
  * 这里使用{@link WebViewFragment}对{@link android.webkit.WebView}生命周期有更好的管控.
@@ -88,7 +90,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         mView.subscribe(new AbsAuthEvent() {
 
             @Override
-            public void call(View view, boolean needLogin) {
+            public void call(Context context, boolean needLogin) {
                 /**
                  * 建议实现逻辑:
                  *
@@ -106,7 +108,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         //文件选择事件, 回调表示: 发起文件选择. (如果app内使用的是系统默认的文件选择器, 该事件可以直接删除)
         mView.subscribe(new AbsChooserEvent() {
             @Override
-            public void call(View view, Intent intent, int requestCode) throws ActivityNotFoundException {
+            public void call(Context context, Intent intent, int requestCode) throws ActivityNotFoundException {
                 startActivityForResult(intent, requestCode);
             }
         });
@@ -114,7 +116,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         //页面状态事件, 回调表示: 页面加载完成
         mView.subscribe(new AbsStateEvent() {
             @Override
-            public void call(View view) {
+            public void call(Context context) {
                 mToolbar.setTitle(mView.getTitle());
 
                 //停止刷新
@@ -126,7 +128,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         //分享事件, 回调表示: 获取到当前页面的分享信息数据
         mView.subscribe(new AbsShareEvent() {
             @Override
-            public void call(View view, GoodsShareModel data) {
+            public void call(Context context, GoodsShareModel data) {
                 /**
                  * 在获取数据后, 可以使用其他分享SDK来提高分享体验.
                  * 这里调用系统分享来简单演示分享的过程.

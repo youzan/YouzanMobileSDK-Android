@@ -18,7 +18,9 @@ package com.youzanyun.sdk.sample.basic;
 
 import android.app.Application;
 
-import com.youzan.sdk.YouzanSDK;
+import com.youzan.androidsdk.YouzanSDK;
+import com.youzan.androidsdk.basic.YouzanBasicSDKAdapter;
+
 
 public class MyApplication extends Application {
     @Override
@@ -26,6 +28,6 @@ public class MyApplication extends Application {
         super.onCreate();
 
         //初始化SDK
-        YouzanSDK.init(this, "client id");
+        YouzanSDK.init(this, "client id", new YouzanBasicSDKAdapter());
     }
 }

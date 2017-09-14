@@ -18,7 +18,9 @@ package com.youzanyun.sdk.sample.hybrid;
 
 import android.app.Application;
 
-import com.youzan.sdk.YouzanSDK;
+import com.youzan.androidsdk.YouzanSDK;
+import com.youzan.androidsdk.hybrid.YouzanHybridSDKAdapter;
+
 
 public class MyApplication extends Application {
 
@@ -27,6 +29,6 @@ public class MyApplication extends Application {
         super.onCreate();
 
         //初始化SDK
-        YouzanSDK.init(this, "client id");
+        YouzanSDK.init(this, "client id", new YouzanHybridSDKAdapter());
     }
 }

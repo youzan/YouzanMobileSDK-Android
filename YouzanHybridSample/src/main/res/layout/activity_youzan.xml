@@ -37,7 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.youzan.sdk.YouzanHybrid
+        <com.youzan.androidsdk.hybrid.YouzanHybrid
             android:id="@+id/view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>

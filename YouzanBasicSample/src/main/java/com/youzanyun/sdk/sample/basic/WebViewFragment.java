@@ -24,7 +24,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.youzan.sdk.web.plugin.YouzanBrowser;
+import com.youzan.androidsdk.basic.YouzanBrowser;
+
 
 /**
  * A fragment that displays a WebView.
