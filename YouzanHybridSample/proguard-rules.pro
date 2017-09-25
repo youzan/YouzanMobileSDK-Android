@@ -25,10 +25,11 @@
 #-renamesourcefileattribute SourceFile
 
 # Youzan SDK
--dontwarn com.youzan.sdk.***
--keep class com.youzan.sdk.**{*;}
+-dontwarn com.youzan.androidsdk.***
+-keep class com.youzan.androidsdk.**{*;}
 
 # OkHttp
+-dontwarn okhttp3.**
 -dontwarn okio.**
 -dontwarn com.squareup.okhttp.**
 -keep class okio.**{*;}
