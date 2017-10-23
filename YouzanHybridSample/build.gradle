@@ -43,7 +43,7 @@ android {
 dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
 
-    compile'com.youzanyun.open.mobile:hybrid:5.2.1'
+    compile'com.youzanyun.open.mobile:hybrid:5.3.0'
 
     //有赞云原生版SDK依赖第三方图片加载框架, 开发者可以选择下列几种图片加载框架.
 
