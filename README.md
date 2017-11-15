@@ -42,13 +42,13 @@ allprojects {
 ### 基础版SDK
 
 ``` groove
-compile 'com.youzanyun.open.mobile:basic:5.3.4'
+compile 'com.youzanyun.open.mobile:basic:5.3.5'
 ```
 
 ### 原生版SDK
 
 ``` groove
-compile 'com.youzanyun.open.mobile:hybrid:5.3.4'
+compile 'com.youzanyun.open.mobile:hybrid:5.3.5'
 ```
 
 ## 文档
