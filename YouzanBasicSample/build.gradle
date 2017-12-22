@@ -42,6 +42,6 @@ android {
 dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
 
-    compile 'com.youzanyun.open.mobile:basic:6.0.0'
+    compile 'com.youzanyun.open.mobile:basic:6.0.1'
 
 }
