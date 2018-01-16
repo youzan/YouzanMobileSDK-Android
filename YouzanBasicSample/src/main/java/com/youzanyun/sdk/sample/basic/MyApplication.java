@@ -18,6 +18,7 @@ package com.youzanyun.sdk.sample.basic;
 
 import android.app.Application;
 
+import com.youzan.androidsdk.YouzanPreloader;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.basic.YouzanBasicSDKAdapter;
 
@@ -27,7 +28,10 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        //初始化SDK
+        // 初始化SDK
         YouzanSDK.init(this, "client id", new YouzanBasicSDKAdapter());
+
+        // 预取html，注：当发生重定向时，预取不生效
+        YouzanPreloader.preloadHtml(this, "https://h5.youzan.com/v2/showcase/homepage?alias=kewr19e1");
     }
 }
