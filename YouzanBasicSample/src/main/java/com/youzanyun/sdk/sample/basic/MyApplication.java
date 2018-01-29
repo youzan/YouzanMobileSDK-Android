@@ -29,7 +29,7 @@ public class MyApplication extends Application {
         super.onCreate();
 
         // 初始化SDK
-        YouzanSDK.init(this, "client id", new YouzanBasicSDKAdapter());
+        YouzanSDK.init(this, "client_id", new YouzanBasicSDKAdapter());
 
         // 预取html，注：当发生重定向时，预取不生效
         YouzanPreloader.preloadHtml(this, "https://h5.youzan.com/v2/showcase/homepage?alias=kewr19e1");
