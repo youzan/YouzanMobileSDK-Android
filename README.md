@@ -36,12 +36,12 @@ allprojects {
 在子项目build.gradle的dependencies中根据需求引入依赖:
 
 ``` groove
-compile 'com.youzanyun.open.mobile:basic:6.2.0'
+compile 'com.youzanyun.open.mobile:basic:6.3.0'
 ```
 
 ## 文档
 
-[下载PDF](https://b.yzcdn.cn/youzanyun/appsdk/Youzan-SDK-Android-Doc-v6.2.0.pdf)
+[下载PDF](https://b.yzcdn.cn/youzanyun/appsdk/Youzan-SDK-Android-Doc-v6.3.0.pdf)
 
 ## 交流&反馈
 
