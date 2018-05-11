@@ -1,6 +1,6 @@
 [![License MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/youzan/SigmaTableViewModel/blob/master/LICENSE)&nbsp;
 [![Platform](https://img.shields.io/badge/platform-Android-yellow.svg)](https://www.android.com)
-[![Release](https://img.shields.io/badge/release-6.3.3-red.svg)](https://bintray.com/youzanyun/maven/)
+[![Release](https://img.shields.io/badge/release-6.3.4-red.svg)](https://bintray.com/youzanyun/maven/)
 
 <p>
 <a href="https://www.youzanyun.com"><img alt="有赞logo" width="36px" src="https://img.yzcdn.cn/public_files/2017/02/09/e84aa8cbbf7852688c86218c1f3bbf17.png" alt="youzan">
@@ -36,12 +36,12 @@ allprojects {
 在子项目build.gradle的dependencies中根据需求引入依赖:
 
 ``` groove
-compile 'com.youzanyun.open.mobile:basic:6.3.3'
+compile 'com.youzanyun.open.mobile:basic:6.3.4'
 ```
 
 ## 文档
 
-[下载PDF](https://b.yzcdn.cn/youzanyun/appsdk/Youzan-SDK-Android-Doc-v6.3.0.pdf)
+[下载PDF](https://b.yzcdn.cn/youzanyun/appsdk/Youzan-SDK-Android-Doc-v6.3.3.pdf)
 
 ## 交流&反馈
 
