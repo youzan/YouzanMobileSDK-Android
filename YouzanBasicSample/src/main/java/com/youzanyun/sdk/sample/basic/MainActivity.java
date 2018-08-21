@@ -38,8 +38,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button_open:
-                //店铺链接, 可以从有赞后台`店铺=>店铺概况=>访问店铺`复制到相应的链接
-                gotoActivity("https://h5.youzan.com/v2/showcase/homepage?alias=kewr19e1");
+                //店铺链接, 可以从有赞后台`店铺=>店铺概况=>访问店铺`复制到相应的链接，这里是一个测试链接
+                gotoActivity("https://h5.youzan.com/v2/showcase/homepage?alias=lUWblj8NNI");
                 break;
             case R.id.button_clear:
                 YouzanSDK.userLogout(this);
