@@ -5,8 +5,8 @@
 [![Release](https://img.shields.io/badge/release-6.4.5-red.svg)](https://bintray.com/youzanyun/maven/)
 （注意：如果从原生WebView的SDK版本升级到X5内核的SDK版本时，与原生WebView相关的类(如WebViewClient)的导包要注意修改为X5内核的包，同时混淆规则也要使用最新的）
 
-[使用原生WebView的SDK]()
-[![Release](https://img.shields.io/badge/release-6.4.4-red.svg)](https://bintray.com/youzanyun/maven/)
+[基于原生WebView的SDK]()
+[![Release](https://img.shields.io/badge/release-6.4.4-red.svg)](https://bintray.com/youzanyun/maven/)不建议继续使用
 
 <p>
 <a href="https://www.youzanyun.com"><img alt="有赞logo" width="36px" src="https://img.yzcdn.cn/public_files/2017/02/09/e84aa8cbbf7852688c86218c1f3bbf17.png" alt="youzan">
