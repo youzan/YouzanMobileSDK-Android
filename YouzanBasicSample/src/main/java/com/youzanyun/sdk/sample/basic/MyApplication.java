@@ -18,9 +18,8 @@ package com.youzanyun.sdk.sample.basic;
 
 import android.app.Application;
 
-import com.youzan.androidsdk.YouzanPreloader;
 import com.youzan.androidsdk.YouzanSDK;
-import com.youzan.androidsdk.basic.YouzanBasicSDKAdapter;
+import com.youzan.androidsdkx5.YouZanSDKX5Adapter;
 
 
 public class MyApplication extends Application {
@@ -29,7 +28,7 @@ public class MyApplication extends Application {
         super.onCreate();
 
         // 初始化SDK
-        YouzanSDK.init(this, "client_id", new YouzanBasicSDKAdapter());
+        YouzanSDK.init(this, "client_id", new YouZanSDKX5Adapter());
 
         // 可选
         // 预取html，一般是预取店铺主页的url。

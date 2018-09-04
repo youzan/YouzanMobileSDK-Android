@@ -29,12 +29,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.youzan.androidsdk.basic.YouzanBrowser;
 import com.youzan.androidsdk.event.AbsAuthEvent;
 import com.youzan.androidsdk.event.AbsChooserEvent;
 import com.youzan.androidsdk.event.AbsShareEvent;
 import com.youzan.androidsdk.event.AbsStateEvent;
 import com.youzan.androidsdk.model.goods.GoodsShareModel;
+import com.youzan.androidsdkx5.YouzanBrowser;
 
 
 /**
