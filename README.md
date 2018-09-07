@@ -1,11 +1,11 @@
 [![License MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/youzan/SigmaTableViewModel/blob/master/LICENSE)&nbsp;
 [![Platform](https://img.shields.io/badge/platform-Android-yellow.svg)](https://www.android.com)
 
-[集成腾讯X5内核的开店SDK][![Release](https://img.shields.io/badge/release-6.4.5-red.svg)](https://bintray.com/youzanyun/maven/)
-（注意：如果从原生WebView的SDK版本升级到X5内核的SDK版本时，与原生WebView相关的类(如WebViewClient)的导包要注意修改为X5内核的包，同时混淆规则也要使用最新的）
+[集成腾讯X5内核的开店SDK][![Release](https://img.shields.io/badge/release-6.4.9-red.svg)](https://bintray.com/youzanyun/maven/)
+（注意：如果从原生WebView的SDK版本升级到X5内核的SDK版本时，请务必查看[相关文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki/%E5%9F%BA%E4%BA%8E%E5%8E%9F%E7%94%9FWebView%E7%9A%84%E5%BC%80%E5%BA%97SDK%E5%88%87%E6%8D%A2%E5%88%B0X5%E7%89%88%E6%9C%AC%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9)）
 
 
-[基于原生WebView的开店SDK][![Release](https://img.shields.io/badge/release-6.4.4-red.svg)](https://bintray.com/youzanyun/maven/)不建议继续使用
+[基于原生WebView的开店SDK][![Release](https://img.shields.io/badge/release-6.4.9-red.svg)](https://bintray.com/youzanyun/maven/)不建议继续使用
 
 <p>
 <a href="https://www.youzanyun.com"><img alt="有赞logo" width="36px" src="https://img.yzcdn.cn/public_files/2017/02/09/e84aa8cbbf7852688c86218c1f3bbf17.png" alt="youzan">
@@ -42,15 +42,15 @@ allprojects {
 
 基于腾讯x5内核的开店SDK：
 ``` groovy
-compile 'com.youzanyun.open.mobile:x5sdk:6.4.5'
+compile 'com.youzanyun.open.mobile:x5sdk:6.4.9'
 ```
 基于Android原生WebView的开店SDK（不建议使用）：
 ``` groovy
-compile 'com.youzanyun.open.mobile:basic:6.4.4'
+compile 'com.youzanyun.open.mobile:basic:6.4.9'
 ```
 
 ## 文档
-
+详细的接入文档见
 [开发文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki)
 
 ## 交流&反馈
