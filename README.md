@@ -2,7 +2,7 @@
 [![Platform](https://img.shields.io/badge/platform-Android-yellow.svg)](https://www.android.com)
 
 [集成腾讯X5内核的开店SDK][![Release](https://img.shields.io/badge/release-6.4.5-red.svg)](https://bintray.com/youzanyun/maven/)
-（注意：如果从原生WebView的SDK版本升级到X5内核的SDK版本时，与原生WebView相关的类(如WebViewClient)的导包要注意修改为X5内核的包，同时混淆规则也要使用最新的，还有布局文件中的WebView类也要更换）
+（注意：如果从原生WebView的SDK版本升级到X5内核的SDK版本时，务必查看[相关文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki/%E5%9F%BA%E4%BA%8E%E5%8E%9F%E7%94%9FWebView%E7%9A%84%E5%BC%80%E5%BA%97SDK%E5%88%87%E6%8D%A2%E5%88%B0X5%E7%89%88%E6%9C%AC%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9)）
 
 
 [基于原生WebView的开店SDK][![Release](https://img.shields.io/badge/release-6.4.4-red.svg)](https://bintray.com/youzanyun/maven/)不建议继续使用
