@@ -44,6 +44,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
     private YouzanBrowser mView;
     private SwipeRefreshLayout mRefreshLayout;
     private Toolbar mToolbar;
+    private static final int CODE_REQUEST_LOGIN = 0x1000;
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -171,15 +172,21 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         //重新加载页面
         mView.reload();
     }
-
+    
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
+        if (CODE_REQUEST_LOGIN == requestCode) {// 如果是登录事件返回
+            if (resultCode == RESULT_OK) {
+                // 登录成功设置token
 
-            //另需处理认证等...
-
-            mView.receiveFile(requestCode, data);
+            } else {
+                // 登录失败
+                view.syncNot();
+            }
+        } else {
+            // 文件选择事件处理。
+            view.receiveFile(requestCode, data);
         }
     }
 }
