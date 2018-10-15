@@ -46,7 +46,8 @@
         </activity>
 
         <!--请勿修改YouzanActivity的launchMode-->
-        <activity android:name=".YouzanActivity"/>
+        <activity android:name=".YouzanActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"/>
 
     </application>
 

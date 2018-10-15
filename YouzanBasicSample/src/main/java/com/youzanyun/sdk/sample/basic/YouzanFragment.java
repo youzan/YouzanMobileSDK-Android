@@ -36,6 +36,8 @@ import com.youzan.androidsdk.event.AbsStateEvent;
 import com.youzan.androidsdk.model.goods.GoodsShareModel;
 import com.youzan.androidsdkx5.YouzanBrowser;
 
+import static android.app.Activity.RESULT_OK;
+
 
 /**
  * 这里使用{@link WebViewFragment}对{@link android.webkit.WebView}生命周期有更好的管控.
@@ -174,7 +176,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
     }
     
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (CODE_REQUEST_LOGIN == requestCode) {// 如果是登录事件返回
             if (resultCode == RESULT_OK) {
@@ -182,11 +184,11 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
 
             } else {
                 // 登录失败
-                view.syncNot();
+                mView.syncNot();
             }
         } else {
             // 文件选择事件处理。
-            view.receiveFile(requestCode, data);
+            mView.receiveFile(requestCode, data);
         }
     }
 }
