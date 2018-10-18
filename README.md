@@ -52,7 +52,8 @@ compile 'com.youzanyun.open.mobile:basic:最新版本'
 ## 文档
 
 * [开发文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki)
-* [更新文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki/%E6%9B%B4%E6%96%B0%E8%AF%B4%E6%98%8E)
+* [X5版本SDK更新文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki/X5%E5%86%85%E6%A0%B8%E7%89%88%E6%9C%ACSDK%E6%9B%B4%E6%96%B0%E8%AF%B4%E6%98%8E)
+* [原生内核版本SDK更新文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki/%E5%8E%9F%E7%94%9F%E5%86%85%E6%A0%B8%E7%89%88%E6%9C%ACSDK%E6%9B%B4%E6%96%B0%E8%AF%B4%E6%98%8E)
 
 ## 交流&反馈
 
