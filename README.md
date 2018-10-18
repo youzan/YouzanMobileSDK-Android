@@ -52,6 +52,7 @@ compile 'com.youzanyun.open.mobile:basic:最新版本'
 ## 文档
 
 [开发文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki)
+[更新文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki/%E6%9B%B4%E6%96%B0%E8%AF%B4%E6%98%8E)
 
 ## 交流&反馈
 
