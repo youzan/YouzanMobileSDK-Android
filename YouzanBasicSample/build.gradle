@@ -42,7 +42,7 @@ android {
 dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
 
-    compile 'com.youzanyun.open.mobile:x5sdk:6.4.12',{
+    compile 'com.youzanyun.open.mobile:x5sdk:6.4.14',{
         exclude group:'com.android.support'
     }
 
