@@ -17,13 +17,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "28.0.1"
+    compileSdkVersion 28
 
     defaultConfig {
         applicationId "com.youzanyun.sdk.sample.basic"
         minSdkVersion 16
-        targetSdkVersion 25
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -33,17 +32,22 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
-    lintOptions {
-        warning 'InvalidPackage'
-    }
 }
 
-dependencies {
-    compile 'com.android.support:appcompat-v7:25.3.1'
-
-    compile 'com.youzanyun.open.mobile:x5sdk:6.4.14',{
-        exclude group:'com.android.support'
+repositories {
+    flatDir {
+        dirs 'libs'
     }
+}
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    testImplementation 'junit:junit:4.12'
+    androidTestCompile('com.android.support.test.espresso:espresso-core:3.0.1', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
 
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.youzanyun.open.mobile:x5sdk:6.4.35',{
+        exclude group: 'com.youzan.mobile', module: 'x5official'
+    }
 }
