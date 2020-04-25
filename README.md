@@ -41,14 +41,13 @@ allprojects {
 
 基于腾讯x5内核的开店SDK：
 ``` groovy
-implementation 'com.youzanyun.open.mobile:x5sdk:最新版本'
-```
-基于Android原生WebView的开店SDK：
-
-``` groovy
   implementation 'com.youzanyun.open.mobile:x5sdk:最新版本',{
         exclude group: 'com.youzan.mobile', module: 'x5official'
     }
+```
+基于Android原生WebView的开店SDK：
+``` groovy
+compile 'com.youzanyun.open.mobile:basic:最新版本'
 ```
 
 ## 文档
