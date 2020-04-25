@@ -47,7 +47,7 @@ allprojects {
 ```
 基于Android原生WebView的开店SDK：
 ``` groovy
-compile 'com.youzanyun.open.mobile:basic:最新版本'
+  implementation 'com.youzanyun.open.mobile:basic:最新版本'
 ```
 
 ## 文档
