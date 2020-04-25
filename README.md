@@ -41,11 +41,14 @@ allprojects {
 
 基于腾讯x5内核的开店SDK：
 ``` groovy
-compile 'com.youzanyun.open.mobile:x5sdk:最新版本'
+implementation 'com.youzanyun.open.mobile:x5sdk:最新版本'
 ```
-基于Android原生WebView的开店SDK（不建议使用）：
+基于Android原生WebView的开店SDK：
+
 ``` groovy
-compile 'com.youzanyun.open.mobile:basic:最新版本'
+  implementation 'com.youzanyun.open.mobile:x5sdk:最新版本',{
+        exclude group: 'com.youzan.mobile', module: 'x5official'
+    }
 ```
 
 ## 文档
@@ -53,6 +56,7 @@ compile 'com.youzanyun.open.mobile:basic:最新版本'
 * [开发文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki)
 * [X5版本SDK更新文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki/%E6%9B%B4%E6%96%B0%E8%AF%B4%E6%98%8E-X5%E5%86%85%E6%A0%B8%E7%89%88%E6%9C%AC)
 * [原生内核版本SDK更新文档](https://github.com/youzan/YouzanMobileSDK-Android/wiki/%E6%9B%B4%E6%96%B0%E8%AF%B4%E6%98%8E-%E5%8E%9F%E7%94%9F%E5%86%85%E6%A0%B8%E7%89%88%E6%9C%AC)
+* [常见问题](https://github.com/youzan/YouzanMobileSDK-Android/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98))
 
 ## 交流&反馈
 

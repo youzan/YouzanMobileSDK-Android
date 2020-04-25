@@ -127,7 +127,6 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 mRefreshLayout.setEnabled(true);
             }
         });
-
         //分享事件, 回调表示: 获取到当前页面的分享信息数据
         mView.subscribe(new AbsShareEvent() {
             @Override
