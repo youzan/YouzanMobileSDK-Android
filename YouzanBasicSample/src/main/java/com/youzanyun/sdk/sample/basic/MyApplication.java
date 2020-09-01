@@ -28,7 +28,8 @@ public class MyApplication extends Application {
         super.onCreate();
 
         // 初始化SDK
-        YouzanSDK.init(this, "client_id", new YouZanSDKX5Adapter());
+        //appkey:可以前往<a href="http://open.youzan.com/sdk/access">有赞开放平台</a>申请
+        YouzanSDK.init(this, "2e759108b5d657f521","", new YouZanSDKX5Adapter());
 
         // 可选
         // 预取html，一般是预取店铺主页的url。

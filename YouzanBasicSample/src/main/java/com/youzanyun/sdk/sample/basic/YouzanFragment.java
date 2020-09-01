@@ -26,14 +26,17 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
 import com.youzan.androidsdk.event.AbsAuthEvent;
 import com.youzan.androidsdk.event.AbsChooserEvent;
+import com.youzan.androidsdk.event.AbsPaymentFinishedEvent;
 import com.youzan.androidsdk.event.AbsShareEvent;
 import com.youzan.androidsdk.event.AbsStateEvent;
 import com.youzan.androidsdk.model.goods.GoodsShareModel;
+import com.youzan.androidsdk.model.trade.TradePayFinishedModel;
 import com.youzan.androidsdkx5.YouzanBrowser;
 
 import static android.app.Activity.RESULT_OK;
@@ -56,6 +59,10 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
 
         final String url = getArguments().getString(YouzanActivity.KEY_URL);
         mView.loadUrl(url);
+        //加载H5时，开启默认loading
+        mView.needLoading(true);
+        //设置自定义loading图片
+//        mView.setLoadingImage(R.mipmap.ic_launcher);
     }
 
 
@@ -105,6 +112,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                  *      服务端接入文档: https://www.youzanyun.com/docs/guide/appsdk/683
                  */
                 //TODO 自行编码实现. 具体可参考开发文档中的伪代码实现
+                Log.e("YouzanFragment","----------------");
             }
         });
 
@@ -143,6 +151,12 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 sendIntent.setType("text/plain");
                 startActivity(sendIntent);
+            }
+        });
+        mView.subscribe(new AbsPaymentFinishedEvent() {
+            @Override
+            public void call(Context context, TradePayFinishedModel tradePayFinishedModel) {
+
             }
         });
 
