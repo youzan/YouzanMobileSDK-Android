@@ -30,7 +30,11 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.youzan.androidsdk.YouzanSDK;
+import com.youzan.androidsdk.YouzanToken;
+import com.youzan.androidsdk.YzLoginCallback;
 import com.youzan.androidsdk.event.AbsAuthEvent;
+import com.youzan.androidsdk.event.AbsCheckAuthMobileEvent;
 import com.youzan.androidsdk.event.AbsChooserEvent;
 import com.youzan.androidsdk.event.AbsPaymentFinishedEvent;
 import com.youzan.androidsdk.event.AbsShareEvent;
@@ -112,10 +116,26 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                  *      服务端接入文档: https://www.youzanyun.com/docs/guide/appsdk/683
                  */
                 //TODO 自行编码实现. 具体可参考开发文档中的伪代码实现
-                Log.e("YouzanFragment","----------------");
+                //TODO 手机号自己填入
+                YouzanSDK.yzlogin("", "5016c8ba77258837d6", "5016c8ba77258837d6", "5016c8ba77258837d6", "1", new YzLoginCallback() {
+                    @Override
+                    public void onSuccess(YouzanToken youzanToken) {
+                        mView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mView.sync(youzanToken);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFail(String s) {
+
+                    }
+                });
             }
         });
-
+        mView.subscribe(new AbsCheckAuthMobileEvent() {});
         //文件选择事件, 回调表示: 发起文件选择. (如果app内使用的是系统默认的文件选择器, 该事件可以直接删除)
         mView.subscribe(new AbsChooserEvent() {
             @Override
@@ -151,6 +171,12 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 sendIntent.setType("text/plain");
                 startActivity(sendIntent);
+            }
+        });
+        mView.subscribe(new AbsAuthEvent() {
+            @Override
+            public void call(Context context, boolean b) {
+
             }
         });
         mView.subscribe(new AbsPaymentFinishedEvent() {
