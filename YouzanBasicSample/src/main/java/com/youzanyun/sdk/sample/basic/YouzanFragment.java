@@ -100,6 +100,8 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
     }
 
     private void setupYouzan() {
+        mView.subscribe(new AbsCheckAuthMobileEvent(){
+        });
         //认证事件, 回调表示: 需要需要新的认证信息传入
         mView.subscribe(new AbsAuthEvent() {
 
@@ -171,12 +173,6 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 sendIntent.setType("text/plain");
                 startActivity(sendIntent);
-            }
-        });
-        mView.subscribe(new AbsAuthEvent() {
-            @Override
-            public void call(Context context, boolean b) {
-
             }
         });
         mView.subscribe(new AbsPaymentFinishedEvent() {
