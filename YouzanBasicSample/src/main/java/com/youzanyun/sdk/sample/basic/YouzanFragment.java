@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -30,6 +31,8 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.tencent.smtt.sdk.WebView;
+import com.tencent.smtt.sdk.WebViewClient;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.YouzanToken;
 import com.youzan.androidsdk.YzLoginCallback;
@@ -42,6 +45,7 @@ import com.youzan.androidsdk.event.AbsStateEvent;
 import com.youzan.androidsdk.model.goods.GoodsShareModel;
 import com.youzan.androidsdk.model.trade.TradePayFinishedModel;
 import com.youzan.androidsdkx5.YouzanBrowser;
+import com.youzan.x5web.WebViewClientWrapper;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -64,7 +68,6 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         final String url = getArguments().getString(YouzanActivity.KEY_URL);
         mView.loadUrl(url);
         //加载H5时，开启默认loading
-        mView.needLoading(true);
         //设置自定义loading图片
 //        mView.setLoadingImage(R.mipmap.ic_launcher);
     }
@@ -100,6 +103,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
     }
 
     private void setupYouzan() {
+        mView.subscribe(new AbsCheckAuthMobileEvent(){});
         //认证事件, 回调表示: 需要需要新的认证信息传入
         mView.subscribe(new AbsAuthEvent() {
 
@@ -117,7 +121,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                  */
                 //TODO 自行编码实现. 具体可参考开发文档中的伪代码实现
                 //TODO 手机号自己填入
-                YouzanSDK.yzlogin("", "5016c8ba77258837d6", "5016c8ba77258837d6", "5016c8ba77258837d6", "1", new YzLoginCallback() {
+                YouzanSDK.yzlogin("6630418", "https://cdn.daddylab.com/Upload/android/20210113/021119/au9j4d6aed5xfweg.jpeg?w=1080&h=1080", "", "一百亿养乐多", "0", new YzLoginCallback() {
                     @Override
                     public void onSuccess(YouzanToken youzanToken) {
                         mView.post(new Runnable() {
@@ -173,19 +177,13 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 startActivity(sendIntent);
             }
         });
-        mView.subscribe(new AbsAuthEvent() {
-            @Override
-            public void call(Context context, boolean b) {
 
-            }
-        });
         mView.subscribe(new AbsPaymentFinishedEvent() {
             @Override
             public void call(Context context, TradePayFinishedModel tradePayFinishedModel) {
 
             }
         });
-
     }
 
 
