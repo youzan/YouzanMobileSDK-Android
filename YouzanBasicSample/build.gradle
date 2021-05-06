@@ -51,7 +51,8 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:3.0.1', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    implementation("com.youzanyun.open.mobile:basic:7.0.2")
+    //basic版本
+//    implementation("com.youzanyun.open.mobile:basic:7.1.11")
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation("com.youzanyun.open.mobile:x5sdk:7.1.15")
 }
