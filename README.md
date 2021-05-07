@@ -32,7 +32,7 @@
 allprojects {
     repositories {
         jcenter()
-        maven {url 'https://dl.bintray.com/youzanyun/maven/'}
+        maven { url 'http://maven.youzanyun.com/repository/maven-releases' }
     }
 }
 ```
