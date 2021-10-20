@@ -16,31 +16,23 @@
   -->
 
 <LinearLayout
-    android:id="@+id/common_activity_root"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     android:orientation="vertical">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
+    <Button
+        android:id="@+id/button_open"
         android:layout_width="match_parent"
-        android:layout_height="?actionBarSize"
-        android:background="?attr/colorPrimary"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        app:titleTextColor="@android:color/white"/>
+        android:layout_height="wrap_content"
+        android:text="@string/open_page"/>
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/swipe"
+
+    <Button
+        android:id="@+id/button_clear"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <com.youzan.androidsdk.basic.YouzanBrowser
-            android:id="@+id/view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </android.support.v4.widget.SwipeRefreshLayout>
+        android:layout_height="wrap_content"
+        android:text="@string/clear"/>
 
 </LinearLayout>

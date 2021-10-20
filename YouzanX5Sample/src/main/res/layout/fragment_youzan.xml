@@ -36,7 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.youzan.androidsdk.basic.YouzanBrowser
+        <com.youzan.androidsdkx5.YouzanBrowser
             android:id="@+id/view"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
