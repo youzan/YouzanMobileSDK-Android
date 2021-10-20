@@ -23,21 +23,20 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.http.SslError;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
+import com.tencent.smtt.export.external.interfaces.SslError;
+import com.tencent.smtt.export.external.interfaces.SslErrorHandler;
+import com.tencent.smtt.sdk.WebViewClient;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.YouzanToken;
 import com.youzan.androidsdk.YzLoginCallback;
-import com.youzan.androidsdk.basic.YouzanBrowser;
 import com.youzan.androidsdk.event.AbsAuthEvent;
 import com.youzan.androidsdk.event.AbsCheckAuthMobileEvent;
 import com.youzan.androidsdk.event.AbsChooserEvent;
@@ -46,6 +45,7 @@ import com.youzan.androidsdk.event.AbsShareEvent;
 import com.youzan.androidsdk.event.AbsStateEvent;
 import com.youzan.androidsdk.model.goods.GoodsShareModel;
 import com.youzan.androidsdk.model.trade.TradePayFinishedModel;
+import com.youzan.androidsdkx5.YouzanBrowser;
 
 
 /**
@@ -101,9 +101,9 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
 
         mView.setWebViewClient(new WebViewClient(){
             @Override
-            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-                // 接入是需手动处理此部分证书逻辑
-                handler.proceed();
+            public void onReceivedSslError(com.tencent.smtt.sdk.WebView webView, SslErrorHandler sslErrorHandler, SslError sslError) {
+                // 需接入方自己处理证书实现
+                sslErrorHandler.proceed();
             }
         });
     }

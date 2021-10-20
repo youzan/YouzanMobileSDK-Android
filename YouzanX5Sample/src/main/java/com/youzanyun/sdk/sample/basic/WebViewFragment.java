@@ -24,7 +24,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.youzan.androidsdk.basic.YouzanBrowser;
+import com.youzan.androidsdkx5.YouzanBrowser;
 
 
 /**
