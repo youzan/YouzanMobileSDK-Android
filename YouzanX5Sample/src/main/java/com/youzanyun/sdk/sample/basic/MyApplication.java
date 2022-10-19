@@ -20,13 +20,15 @@ import android.app.Application;
 
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter;
+import com.youzan.garrison.GarrisonEngine;
 
 
 public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
+        // isDebug = true环境下，调用隐私api会在logcat中输出日志
+        new GarrisonEngine.Builder().isDebug(true).setContext(this).isCacheApi(true).build();
         // 初始化SDK
         //appkey:可以前往<a href="http://open.youzan.com/sdk/access">有赞开放平台</a>申请
         YouzanSDK.isDebug(true);

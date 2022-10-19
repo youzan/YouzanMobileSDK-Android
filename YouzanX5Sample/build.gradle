@@ -15,7 +15,7 @@
  */
 
 apply plugin: 'com.android.application'
-
+apply plugin: 'com.youzan.garrison.plugin'
 android {
     compileSdkVersion 28
 
@@ -26,6 +26,7 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    ndkVersion "22.1.7171670"
     buildTypes {
         release {
             minifyEnabled false
@@ -48,12 +49,13 @@ repositories {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     testImplementation 'junit:junit:4.12'
-    androidTestCompile('com.android.support.test.espresso:espresso-core:3.0.1', {
+    androidTestCompile('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     //basic版本
 //    implementation("com.youzanyun.open.mobile:basic:7.1.16")
-    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
     //x5版本
-    implementation("com.youzanyun.open.mobile:x5sdk:7.1.21")
+    implementation("com.youzanyun.open.mobile:x5sdk:7.5.3")
+    implementation "com.youzanyun.open.mobile:garrison:0.2.0"
 }

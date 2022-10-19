@@ -18,10 +18,12 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
+        maven { url 'http://maven.youzanyun.com/repository/maven-releases' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath 'com.android.tools.build:gradle:4.0.2'
+        classpath "com.youzanyun.open.mobile:garrison_plugin:0.2.0"
     }
 }
 
@@ -32,8 +34,9 @@ task clean(type: Delete) {
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
         maven { url 'http://maven.youzanyun.com/repository/maven-releases' }
+        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
     }
 }
 
