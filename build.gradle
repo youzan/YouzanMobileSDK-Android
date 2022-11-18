@@ -34,7 +34,6 @@ allprojects {
         google()
         mavenCentral()
         maven { url 'http://maven.youzanyun.com/repository/maven-releases' }
-        maven { url 'http://maven.youzanyun.com/repository/maven-snapshots' }
     }
 }
 
