@@ -181,9 +181,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         mView.subscribe(new AbsStateEvent() {
             @Override
             public void call(Context context) {
-                Log.d("SWTTAG", "AbsStateEven");
                 mToolbar.setTitle(mView.getTitle());
-
                 //停止刷新
                 mRefreshLayout.setRefreshing(false);
                 mRefreshLayout.setEnabled(true);
