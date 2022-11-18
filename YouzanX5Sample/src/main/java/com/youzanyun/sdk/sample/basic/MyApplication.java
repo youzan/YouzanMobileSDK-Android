@@ -18,6 +18,7 @@ package com.youzanyun.sdk.sample.basic;
 
 import android.app.Application;
 
+import com.youzan.androidsdk.InitConfig;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter;
 
@@ -31,7 +32,12 @@ public class MyApplication extends Application {
         //appkey:可以前往<a href="http://open.youzan.com/sdk/access">有赞开放平台</a>申请
         YouzanSDK.isDebug(true);
         //TODO clientId 写入
-        YouzanSDK.init(this, "0073bccbaf5369028a","", new YouZanSDKX5Adapter());
+        YouzanSDK.init(this, InitConfig.builder()
+                .clientId("0073bccbaf5369028a")
+                .appkey("")
+                .adapter(new YouZanSDKX5Adapter())
+                .advanceHideX5Loading(Boolean.FALSE)
+                .build());
 
         // 可选
         // 预取html，一般是预取店铺主页的url。
