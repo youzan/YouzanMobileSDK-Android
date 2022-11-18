@@ -22,11 +22,13 @@ import static android.app.Activity.RESULT_OK;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
@@ -38,13 +40,16 @@ import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.YouzanToken;
 import com.youzan.androidsdk.YzLoginCallback;
 import com.youzan.androidsdk.event.AbsAuthEvent;
+import com.youzan.androidsdk.event.AbsChangePullRefreshEvent;
 import com.youzan.androidsdk.event.AbsCheckAuthMobileEvent;
 import com.youzan.androidsdk.event.AbsChooserEvent;
 import com.youzan.androidsdk.event.AbsPaymentFinishedEvent;
 import com.youzan.androidsdk.event.AbsShareEvent;
 import com.youzan.androidsdk.event.AbsStateEvent;
 import com.youzan.androidsdk.model.goods.GoodsShareModel;
+import com.youzan.androidsdk.model.refresh.RefreshChangeModel;
 import com.youzan.androidsdk.model.trade.TradePayFinishedModel;
+import com.youzan.androidsdk.tool.JsonUtil;
 import com.youzan.androidsdkx5.YouzanBrowser;
 
 
@@ -99,7 +104,13 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.RED);
         mRefreshLayout.setEnabled(false);
 
-        mView.setWebViewClient(new WebViewClient(){
+        mView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(com.tencent.smtt.sdk.WebView webView, String s, Bitmap bitmap) {
+                mRefreshLayout.setEnabled(true);
+                super.onPageStarted(webView, s, bitmap);
+            }
+
             @Override
             public void onReceivedSslError(com.tencent.smtt.sdk.WebView webView, SslErrorHandler sslErrorHandler, SslError sslError) {
                 // 需接入方自己处理证书实现
@@ -109,7 +120,8 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
     }
 
     private void setupYouzan() {
-        mView.subscribe(new AbsCheckAuthMobileEvent(){});
+        mView.subscribe(new AbsCheckAuthMobileEvent() {
+        });
         //认证事件, 回调表示: 需要需要新的认证信息传入
         mView.subscribe(new AbsAuthEvent() {
 
@@ -145,7 +157,8 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 });
             }
         });
-        mView.subscribe(new AbsCheckAuthMobileEvent() {});
+        mView.subscribe(new AbsCheckAuthMobileEvent() {
+        });
         //文件选择事件, 回调表示: 发起文件选择. (如果app内使用的是系统默认的文件选择器, 该事件可以直接删除)
         mView.subscribe(new AbsChooserEvent() {
             @Override
@@ -153,11 +166,22 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 startActivityForResult(intent, requestCode);
             }
         });
+        mView.subscribe(new AbsChangePullRefreshEvent() {
+
+            @Override
+            public void call(@Nullable RefreshChangeModel refreshChangeModel) {
+                if (refreshChangeModel != null && refreshChangeModel.getEnable() != null) {
+                    //新建收货地址页下滑与页面下拉刷新冲突时，禁止该页面下拉刷新
+                    mRefreshLayout.setEnabled(refreshChangeModel.getEnable());
+                }
+            }
+        });
 
         //页面状态事件, 回调表示: 页面加载完成
         mView.subscribe(new AbsStateEvent() {
             @Override
             public void call(Context context) {
+                Log.d("SWTTAG", "AbsStateEven");
                 mToolbar.setTitle(mView.getTitle());
 
                 //停止刷新
@@ -214,10 +238,10 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
 
     @Override
     public void onRefresh() {
-        //重新加载页面
-        mView.reload();
+            //重新加载页面
+            mView.reload();
     }
-    
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

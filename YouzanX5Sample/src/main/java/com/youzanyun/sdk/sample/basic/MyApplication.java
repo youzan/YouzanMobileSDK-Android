@@ -36,6 +36,7 @@ public class MyApplication extends Application {
                 .clientId("0073bccbaf5369028a")
                 .appkey("")
                 .adapter(new YouZanSDKX5Adapter())
+                .advanceHideX5Loading(Boolean.FALSE)
                 .build());
 
         // 可选
