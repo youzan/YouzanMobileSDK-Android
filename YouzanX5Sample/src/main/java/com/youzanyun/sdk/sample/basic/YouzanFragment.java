@@ -31,6 +31,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import com.tencent.smtt.export.external.interfaces.SslError;
@@ -103,7 +104,6 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         mRefreshLayout.setOnRefreshListener(this);
         mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.RED);
         mRefreshLayout.setEnabled(false);
-
         mView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(com.tencent.smtt.sdk.WebView webView, String s, Bitmap bitmap) {
