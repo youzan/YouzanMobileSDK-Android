@@ -33,6 +33,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import com.tencent.smtt.export.external.interfaces.SslError;
 import com.tencent.smtt.export.external.interfaces.SslErrorHandler;
@@ -44,6 +45,7 @@ import com.youzan.androidsdk.event.AbsAuthEvent;
 import com.youzan.androidsdk.event.AbsChangePullRefreshEvent;
 import com.youzan.androidsdk.event.AbsCheckAuthMobileEvent;
 import com.youzan.androidsdk.event.AbsChooserEvent;
+import com.youzan.androidsdk.event.AbsCustomEvent;
 import com.youzan.androidsdk.event.AbsPaymentFinishedEvent;
 import com.youzan.androidsdk.event.AbsShareEvent;
 import com.youzan.androidsdk.event.AbsStateEvent;
@@ -52,6 +54,10 @@ import com.youzan.androidsdk.model.refresh.RefreshChangeModel;
 import com.youzan.androidsdk.model.trade.TradePayFinishedModel;
 import com.youzan.androidsdk.tool.JsonUtil;
 import com.youzan.androidsdkx5.YouzanBrowser;
+
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 /**
@@ -185,6 +191,25 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 //停止刷新
                 mRefreshLayout.setRefreshing(false);
                 mRefreshLayout.setEnabled(true);
+            }
+        });
+        mView.subscribe(new AbsCustomEvent(){
+
+            @Override
+            public void callAction(@NotNull Context context, @NotNull String action, @NotNull String data) {
+                switch (action){
+                    case "openHome":
+                        //此处仅举例，具体实现根据对应需求做调整
+                        try {
+                            JSONObject jsonObject=new JSONObject(data);
+                            JSONObject paramObj=jsonObject.optJSONObject("params");
+                            String result=paramObj.optString("test");
+                            Toast.makeText(getActivity(),"test:"+result,Toast.LENGTH_LONG).show();
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                        break;
+                }
             }
         });
         //分享事件, 回调表示: 获取到当前页面的分享信息数据
