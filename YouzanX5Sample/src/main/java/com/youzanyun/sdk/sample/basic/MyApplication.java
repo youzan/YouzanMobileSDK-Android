@@ -33,7 +33,7 @@ public class MyApplication extends Application {
         YouzanSDK.isDebug(true);
         //TODO clientId 写入
         YouzanSDK.init(this, InitConfig.builder()
-                .clientId("0073bccbaf5369028a")
+                .clientId("85c84df034281fcc27")
                 .appkey("")
                 .adapter(new YouZanSDKX5Adapter())
                 .advanceHideX5Loading(Boolean.FALSE)

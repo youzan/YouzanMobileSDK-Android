@@ -35,8 +35,10 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient;
 import com.tencent.smtt.export.external.interfaces.SslError;
 import com.tencent.smtt.export.external.interfaces.SslErrorHandler;
+import com.tencent.smtt.sdk.WebChromeClient;
 import com.tencent.smtt.sdk.WebViewClient;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.YouzanToken;
@@ -77,6 +79,8 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
 
         final String url = getArguments().getString(YouzanActivity.KEY_URL);
         mView.loadUrl(url);
+
+
         //加载H5时，开启默认loading
         //设置自定义loading图片
 //        mView.setLoadingImage(R.mipmap.ic_launcher);
@@ -87,6 +91,13 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         //WebView
         mView = getWebView();
 
+        if (mView.getX5WebViewExtension() != null) {
+            Bundle data = new Bundle();
+            data.putBoolean("standardFullScreen", true);// true表示标准全屏，false表示X5全屏；不设置默认false，
+            data.putBoolean("supportLiteWnd", true);// false：关闭小窗；true：开启小窗；不设置默认true，
+            data.putInt("DefaultVideoScreen", 2);// 1：以页面内开始播放，2：以全屏开始播放；不设置默认：1
+            mView.getX5WebViewExtension().invokeMiscMethod("setVideoParams", data);
+        }
         mToolbar = (Toolbar) contentView.findViewById(R.id.toolbar);
         mRefreshLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe);
 
@@ -110,17 +121,12 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         mRefreshLayout.setOnRefreshListener(this);
         mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.RED);
         mRefreshLayout.setEnabled(false);
-        mView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageStarted(com.tencent.smtt.sdk.WebView webView, String s, Bitmap bitmap) {
-                mRefreshLayout.setEnabled(true);
-                super.onPageStarted(webView, s, bitmap);
-            }
+        mView.setWebChromeClient(new WebChromeClient() {
 
             @Override
-            public void onReceivedSslError(com.tencent.smtt.sdk.WebView webView, SslErrorHandler sslErrorHandler, SslError sslError) {
-                // 需接入方自己处理证书实现
-                sslErrorHandler.proceed();
+            public void onShowCustomView(View view, IX5WebChromeClient.CustomViewCallback customViewCallback) {
+                super.onShowCustomView(view, customViewCallback);
+                customViewCallback.onCustomViewHidden();// 避免视频未播放时，点击全屏白屏的问题
             }
         });
     }
@@ -145,7 +151,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                  */
                 //TODO 自行编码实现. 具体可参考开发文档中的伪代码实现
                 //TODO 手机号自己填入
-                YouzanSDK.yzlogin("6630418", "https://cdn.daddylab.com/Upload/android/20210113/021119/au9j4d6aed5xfweg.jpeg?w=1080&h=1080", "", "一百亿养乐多", "0", new YzLoginCallback() {
+                YouzanSDK.yzlogin("3402356", "https://cdn.daddylab.com/Upload/android/20210113/021119/au9j4d6aed5xfweg.jpeg?w=1080&h=1080", "", "一百亿养乐多", "0", new YzLoginCallback() {
                     @Override
                     public void onSuccess(YouzanToken youzanToken) {
                         mView.post(new Runnable() {
