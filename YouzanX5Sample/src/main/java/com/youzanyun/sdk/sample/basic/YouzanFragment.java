@@ -28,8 +28,12 @@ import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
 
 import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient;
 import com.tencent.smtt.export.external.interfaces.SslError;
@@ -54,10 +58,16 @@ import com.youzan.androidsdkx5.YouzanBrowser;
  * 这里使用{@link WebViewFragment}对{@link android.webkit.WebView}生命周期有更好的管控.
  */
 public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayout.OnRefreshListener {
+
     private YouzanBrowser mView;
     private SwipeRefreshLayout mRefreshLayout;
     private Toolbar mToolbar;
     private static final int CODE_REQUEST_LOGIN = 0x1000;
+
+    protected static final FrameLayout.LayoutParams COVER_SCREEN_PARAMS = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+    private View customView;
+    private FrameLayout fullscreenContainer;
+    private IX5WebChromeClient.CustomViewCallback mCustomViewCallback;
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -106,7 +116,13 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
             @Override
             public void onShowCustomView(View view, IX5WebChromeClient.CustomViewCallback customViewCallback) {
                 super.onShowCustomView(view, customViewCallback);
-                customViewCallback.onCustomViewHidden();// 避免视频未播放时，点击全屏白屏的问题
+                showCustomView(view, customViewCallback);
+            }
+
+            @Override
+            public void onHideCustomView() {
+                super.onHideCustomView();
+                hideCustomView();
             }
         });
 
@@ -122,6 +138,56 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 super.onPageFinished(webView, s);
             }
         });
+    }
+
+
+    /** 视频播放全屏 **/
+    private void showCustomView(View view,  IX5WebChromeClient.CustomViewCallback callback) {
+        // if a view already exists then immediately terminate the new one
+        if (customView != null) {
+            callback.onCustomViewHidden();
+            return;
+        }
+
+        this.getActivity().getWindow().getDecorView();
+
+        FrameLayout decor = (FrameLayout) getActivity().getWindow().getDecorView();
+        fullscreenContainer = new FullscreenHolder(getActivity());
+        fullscreenContainer.addView(view, COVER_SCREEN_PARAMS);
+        decor.addView(fullscreenContainer, COVER_SCREEN_PARAMS);
+        customView = view;
+        setStatusBarVisibility(false);
+        mCustomViewCallback = callback;
+    }
+
+    /** 隐藏视频全屏 */
+    private void hideCustomView() {
+        if (customView == null) {
+            return;
+        }
+
+        setStatusBarVisibility(true);
+        FrameLayout decor = (FrameLayout) getActivity().getWindow().getDecorView();
+        decor.removeView(fullscreenContainer);
+        fullscreenContainer = null;
+        customView = null;
+        mCustomViewCallback.onCustomViewHidden();
+        getWebView().setVisibility(View.VISIBLE);
+    }
+
+    /** 全屏容器界面 */
+    static class FullscreenHolder extends FrameLayout {
+
+        public FullscreenHolder(Context ctx) {
+            super(ctx);
+            setBackgroundColor(ctx.getResources().getColor(android.R.color.black));
+        }
+
+    }
+
+    private void setStatusBarVisibility(boolean visible) {
+        int flag = visible ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
+        getActivity().getWindow().setFlags(flag, WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     private void setupYouzan() {
@@ -225,6 +291,10 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
     @Override
     public boolean onBackPressed() {
         //页面回退
+        if (customView != null) {
+          hideCustomView();
+            return true;
+        }
         return getWebView().pageGoBack();
     }
 
