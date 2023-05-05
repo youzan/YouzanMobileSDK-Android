@@ -21,8 +21,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.youzan.androidsdk.YouzanSDK;
-
 
 public class MainActivity extends Activity implements View.OnClickListener {
 
@@ -42,7 +40,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 gotoActivity("https://h5.youzan.com/v2/showcase/homepage?alias=lUWblj8NNI");
                 break;
             case R.id.button_clear:
-                YouzanSDK.userLogout(this);
+//                YouzanSDK.userLogout(this);
                 break;
             default:
                 break;

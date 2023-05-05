@@ -55,5 +55,5 @@ dependencies {
 //    implementation("com.youzanyun.open.mobile:basic:7.1.16")
     implementation 'com.android.support:appcompat-v7:28.0.0'
     //x5版本
-    implementation("com.youzanyun.open.mobile:x5sdk:7.1.21")
+    implementation("com.youzanyun.open.mobile:x5sdk:7.3.0")
 }
