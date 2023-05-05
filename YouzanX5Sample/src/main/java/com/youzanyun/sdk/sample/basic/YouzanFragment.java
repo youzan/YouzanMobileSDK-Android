@@ -105,6 +105,11 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 // 需接入方自己处理证书实现
                 sslErrorHandler.proceed();
             }
+
+            @Override
+            public void onPageFinished(com.tencent.smtt.sdk.WebView webView, String s) {
+                super.onPageFinished(webView, s);
+            }
         });
     }
 
@@ -127,7 +132,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                  */
                 //TODO 自行编码实现. 具体可参考开发文档中的伪代码实现
                 //TODO 手机号自己填入
-                YouzanSDK.yzlogin("6630418", "https://cdn.daddylab.com/Upload/android/20210113/021119/au9j4d6aed5xfweg.jpeg?w=1080&h=1080", "", "一百亿养乐多", "0", new YzLoginCallback() {
+                YouzanSDK.yzlogin("3402356", "https://cdn.daddylab.com/Upload/android/20210113/021119/au9j4d6aed5xfweg.jpeg?w=1080&h=1080", "", "一百亿养乐多111", "0", new YzLoginCallback() {
                     @Override
                     public void onSuccess(YouzanToken youzanToken) {
                         mView.post(new Runnable() {

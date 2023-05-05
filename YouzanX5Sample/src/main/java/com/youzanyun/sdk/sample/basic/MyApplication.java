@@ -31,7 +31,7 @@ public class MyApplication extends Application {
         //appkey:可以前往<a href="http://open.youzan.com/sdk/access">有赞开放平台</a>申请
         YouzanSDK.isDebug(true);
         //TODO clientId 写入
-        YouzanSDK.init(this, "0073bccbaf5369028a","", new YouZanSDKX5Adapter());
+        YouzanSDK.init(this, "85c84df034281fcc27","", new YouZanSDKX5Adapter());
 
         // 可选
         // 预取html，一般是预取店铺主页的url。
