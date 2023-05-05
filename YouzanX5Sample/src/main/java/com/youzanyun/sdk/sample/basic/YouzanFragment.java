@@ -31,8 +31,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 
+import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient;
 import com.tencent.smtt.export.external.interfaces.SslError;
 import com.tencent.smtt.export.external.interfaces.SslErrorHandler;
+import com.tencent.smtt.sdk.WebChromeClient;
 import com.tencent.smtt.sdk.WebViewClient;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.YouzanToken;
@@ -98,6 +100,15 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         mRefreshLayout.setOnRefreshListener(this);
         mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.RED);
         mRefreshLayout.setEnabled(false);
+
+        mView.setWebChromeClient(new WebChromeClient() {
+
+            @Override
+            public void onShowCustomView(View view, IX5WebChromeClient.CustomViewCallback customViewCallback) {
+                super.onShowCustomView(view, customViewCallback);
+                customViewCallback.onCustomViewHidden();// 避免视频未播放时，点击全屏白屏的问题
+            }
+        });
 
         mView.setWebViewClient(new WebViewClient(){
             @Override
