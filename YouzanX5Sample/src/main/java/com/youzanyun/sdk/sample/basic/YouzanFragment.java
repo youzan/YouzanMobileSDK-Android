@@ -56,6 +56,9 @@ import com.youzan.androidsdk.model.refresh.RefreshChangeModel;
 import com.youzan.androidsdk.model.trade.TradePayFinishedModel;
 import com.youzan.androidsdk.tool.JsonUtil;
 import com.youzan.androidsdkx5.YouzanBrowser;
+import com.youzan.androidsdkx5.compat.CompatWebChromeClient;
+import com.youzan.androidsdkx5.compat.VideoCallback;
+import com.youzan.androidsdkx5.compat.WebChromeClientConfig;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -99,7 +102,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
             mView.getX5WebViewExtension().invokeMiscMethod("setVideoParams", data);
         }
         mToolbar = (Toolbar) contentView.findViewById(R.id.toolbar);
-        mRefreshLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe);
+//        mRefreshLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe);
 
         //分享按钮
         mToolbar.setTitle(R.string.loading_page);
@@ -118,9 +121,9 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         });
 
         //刷新
-        mRefreshLayout.setOnRefreshListener(this);
-        mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.RED);
-        mRefreshLayout.setEnabled(false);
+//        mRefreshLayout.setOnRefreshListener(this);
+//        mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.RED);
+//        mRefreshLayout.setEnabled(false);
         mView.setWebChromeClient(new WebChromeClient() {
 
             @Override
@@ -129,6 +132,18 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 customViewCallback.onCustomViewHidden();// 避免视频未播放时，点击全屏白屏的问题
             }
         });
+
+
+        mView.setWebChromeClient(new CompatWebChromeClient(
+                new WebChromeClientConfig(
+                        true, new VideoCallback() {
+                    @Override
+                    public void onVideoCallback(boolean b) {
+                        Toast.makeText(getActivity(), "" + b, Toast.LENGTH_SHORT).show();
+                    }
+                }
+                )
+        ));
     }
 
     private void setupYouzan() {
@@ -151,7 +166,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                  */
                 //TODO 自行编码实现. 具体可参考开发文档中的伪代码实现
                 //TODO 手机号自己填入
-                YouzanSDK.yzlogin("3402356", "https://cdn.daddylab.com/Upload/android/20210113/021119/au9j4d6aed5xfweg.jpeg?w=1080&h=1080", "", "一百亿养乐多", "0", new YzLoginCallback() {
+                YouzanSDK.yzlogin("31467761", "https://cdn.daddylab.com/Upload/android/20210113/021119/au9j4d6aed5xfweg.jpeg?w=1080&h=1080", "", "一百亿养乐多", "0", new YzLoginCallback() {
                     @Override
                     public void onSuccess(YouzanToken youzanToken) {
                         mView.post(new Runnable() {
@@ -184,7 +199,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
             public void call(@Nullable RefreshChangeModel refreshChangeModel) {
                 if (refreshChangeModel != null && refreshChangeModel.getEnable() != null) {
                     //新建收货地址页下滑与页面下拉刷新冲突时，禁止该页面下拉刷新
-                    mRefreshLayout.setEnabled(refreshChangeModel.getEnable());
+//                    mRefreshLayout.setEnabled(refreshChangeModel.getEnable());
                 }
             }
         });
@@ -195,8 +210,8 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
             public void call(Context context) {
                 mToolbar.setTitle(mView.getTitle());
                 //停止刷新
-                mRefreshLayout.setRefreshing(false);
-                mRefreshLayout.setEnabled(true);
+//                mRefreshLayout.setRefreshing(false);
+//                mRefreshLayout.setEnabled(true);
             }
         });
         mView.subscribe(new AbsCustomEvent(){

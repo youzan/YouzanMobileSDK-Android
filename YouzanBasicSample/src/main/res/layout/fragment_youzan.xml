@@ -31,16 +31,16 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:titleTextColor="@android:color/white"/>
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/swipe"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+<!--    <android.support.v4.widget.SwipeRefreshLayout-->
+<!--        android:id="@+id/swipe"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent">-->
 
         <com.youzan.androidsdk.basic.YouzanBrowser
             android:id="@+id/view"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-    </android.support.v4.widget.SwipeRefreshLayout>
+<!--    </android.support.v4.widget.SwipeRefreshLayout>-->
 
 </LinearLayout>
