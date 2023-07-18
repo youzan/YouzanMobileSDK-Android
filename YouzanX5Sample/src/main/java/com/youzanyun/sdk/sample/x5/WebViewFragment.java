@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.youzanyun.sdk.sample.basic;
+package com.youzanyun.sdk.sample.x5;
 
 import android.os.Bundle;
 import android.support.annotation.IdRes;

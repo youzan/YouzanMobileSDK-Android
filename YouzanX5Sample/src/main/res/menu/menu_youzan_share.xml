@@ -24,4 +24,10 @@
         android:title="@string/share"
         app:showAsAction="always"/>
 
+    <item
+        android:id="@+id/action_refresh"
+        android:icon="@drawable/refresh"
+        android:title="刷新"
+        app:showAsAction="always"/>
+
 </menu>

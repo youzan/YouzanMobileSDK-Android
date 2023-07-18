@@ -15,12 +15,16 @@
  */
 
 apply plugin: 'com.android.application'
+//编译kotlin代码
+apply plugin: 'kotlin-android'
+//可选 代码支持通过view id获取对象，不再需要findViewById
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 33
 
     defaultConfig {
-        applicationId "com.youzanyun.sdk.sample.basic"
+        applicationId "com.youzanyun.sdk.sample.x5"
         minSdkVersion 16
         targetSdkVersion 33
         versionCode 1
@@ -47,12 +51,16 @@ repositories {
 }
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support.constraint:constraint-layout:2.0.4'
     androidTestCompile('com.android.support.test.espresso:espresso-core:3.0.1', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     //basic版本
 //    implementation("com.youzanyun.open.mobile:basic:7.1.16")
     implementation 'com.android.support:appcompat-v7:28.0.0'
     //x5版本
     implementation("com.youzanyun.open.mobile:x5sdk:7.14.0")
+    implementation 'com.ashokvarma.android:bottom-navigation-bar:2.0.3'
 }

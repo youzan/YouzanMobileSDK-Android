@@ -103,6 +103,8 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
 //        mRefreshLayout.setEnabled(false);
 
         mView.setWebViewClient(new WebViewClient() {
+
+
             @Override
             public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
                 // 接入是需手动处理此部分证书逻辑
@@ -117,9 +119,16 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                     public void onVideoCallback(boolean b) {
                         Toast.makeText(getActivity(), "" + b, Toast.LENGTH_SHORT).show();
                     }
+
+
                 }
                 )
-        ));
+        ) {
+            @Override
+            public void onReceivedTitle(WebView view, String title) {
+                super.onReceivedTitle(view, title);
+            }
+        });
 
     }
 

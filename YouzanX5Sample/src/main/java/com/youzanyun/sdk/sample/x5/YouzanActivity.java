@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.youzanyun.sdk.sample.basic;
+package com.youzanyun.sdk.sample.x5;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+
+import com.youzanyun.sdk.sample.x5.R;
 
 
 public class YouzanActivity extends AppCompatActivity {

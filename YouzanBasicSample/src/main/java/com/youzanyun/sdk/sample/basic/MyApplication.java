@@ -40,6 +40,7 @@ public class MyApplication extends Application {
 
                 .build());
 
+
         // 可选
         // 预取html，一般是预取店铺主页的url。
         // 注意：当发生重定向时，预取不生效。
