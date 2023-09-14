@@ -21,6 +21,7 @@ import android.app.Application;
 import com.youzan.androidsdk.InitConfig;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.basic.YouzanBasicSDKAdapter;
+import com.youzan.androidsdk.basic.YouzanPreloader;
 
 
 public class MyApplication extends Application {
@@ -44,6 +45,6 @@ public class MyApplication extends Application {
         // 可选
         // 预取html，一般是预取店铺主页的url。
         // 注意：当发生重定向时，预取不生效。
-        // YouzanPreloader.preloadHtml(this, "准备预加载的页面的URL");
+         YouzanPreloader.preloadHtml(this, "准备预加载的页面的URL");
     }
 }
