@@ -19,6 +19,7 @@ import android.app.Application
 import com.youzan.androidsdk.InitConfig
 import com.youzan.androidsdk.YouzanSDK
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter
+import com.youzan.androidsdkx5.YouzanPreloader
 import com.youzanyun.sdk.sample.config.KaeConfig
 import com.youzanyun.sdk.sample.helper.LoginHelper
 
@@ -40,7 +41,7 @@ class MyApplication : Application() {
         // 可选
         // 预取html，一般是预取店铺主页的url。
         // 注意：当发生重定向时，预取不生效。
-        // YouzanPreloader.preloadHtml(this, "准备预加载的页面的URL");
+//         YouzanPreloader.preloadHtml(this, "准备预加载的页面的URL");
         LoginHelper.init(this)
     }
 }

@@ -31,6 +31,13 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:titleTextColor="@android:color/white"/>
 
+    <TextView
+        android:id="@+id/back"
+        android:text="back"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"/>
+
 <!--    <android.support.v4.widget.SwipeRefreshLayout-->
 <!--        android:id="@+id/swipe"-->
 <!--        android:layout_width="match_parent"-->

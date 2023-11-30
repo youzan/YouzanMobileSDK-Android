@@ -19,15 +19,19 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.Toolbar
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient
 import com.tencent.smtt.sdk.WebChromeClient
+import com.tencent.smtt.sdk.WebView
+import com.tencent.smtt.sdk.WebViewClient
 import com.youzan.androidsdk.event.AbsCheckAuthMobileEvent
 import com.youzan.androidsdk.event.AbsAuthEvent
 import com.youzan.androidsdk.YouzanSDK
@@ -72,6 +76,9 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        view.findViewById<View>(R.id.back).setOnClickListener {
+            Log.d("lsd", "click")
+        }
         setupViews(view)
         setupYouzan()
         val url : String? = arguments!!.getString(YouzanActivity.KEY_URL)
@@ -124,7 +131,10 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                 super.onShowCustomView(view, customViewCallback)
                 customViewCallback.onCustomViewHidden() // 避免视频未播放时，点击全屏白屏的问题
             }
+
+
         })
+
         mView.setWebChromeClient(CompatWebChromeClient(
             WebChromeClientConfig(
                 true, object : VideoCallback {
@@ -134,9 +144,23 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                 }
             )
         ))
+
+        mView.setWebViewClient(object : WebViewClient() {
+            override fun onPageFinished(p0: WebView?, p1: String?) {
+                super.onPageFinished(p0, p1)
+                Log.d("lsd", "onPageFinished")
+            }
+
+            override fun onPageStarted(p0: WebView?, p1: String?, p2: Bitmap?) {
+                super.onPageStarted(p0, p1, p2)
+                Log.d("lsd", "onPageStarted")
+
+            }
+        })
     }
 
     private fun setupYouzan() {
+
         mView!!.subscribe(object : AbsCheckAuthMobileEvent() {})
         //认证事件, 回调表示: 需要需要新的认证信息传入
         mView!!.subscribe(object : AbsAuthEvent() {
