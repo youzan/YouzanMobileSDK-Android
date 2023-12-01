@@ -93,7 +93,7 @@ class MainActivity : FragmentActivity(), View.OnClickListener {
                     1 -> fg1
                     2 -> fg2
                     3 -> fg3
-                    else -> fg3
+                    else -> fg0
                 }
             }
 

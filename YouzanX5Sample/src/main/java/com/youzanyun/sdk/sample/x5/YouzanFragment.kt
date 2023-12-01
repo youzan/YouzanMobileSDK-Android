@@ -22,29 +22,20 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.support.v4.widget.SwipeRefreshLayout
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient
+import com.tencent.smtt.export.external.interfaces.WebResourceRequest
 import com.tencent.smtt.sdk.WebChromeClient
 import com.tencent.smtt.sdk.WebView
 import com.tencent.smtt.sdk.WebViewClient
-import com.youzan.androidsdk.event.AbsCheckAuthMobileEvent
-import com.youzan.androidsdk.event.AbsAuthEvent
-import com.youzan.androidsdk.YouzanSDK
-import com.youzan.androidsdk.YzLoginCallback
-import com.youzan.androidsdk.YouzanToken
-import com.youzan.androidsdk.event.AbsChooserEvent
-import com.youzan.androidsdk.event.AbsChangePullRefreshEvent
-import com.youzan.androidsdk.model.refresh.RefreshChangeModel
-import com.youzan.androidsdk.event.AbsStateEvent
-import com.youzan.androidsdk.event.AbsCustomEvent
-import com.youzan.androidsdk.event.AbsShareEvent
+import com.youzan.androidsdk.event.*
 import com.youzan.androidsdk.model.goods.GoodsShareModel
-import com.youzan.androidsdk.event.AbsPaymentFinishedEvent
+import com.youzan.androidsdk.model.refresh.RefreshChangeModel
 import com.youzan.androidsdk.model.trade.TradePayFinishedModel
 import com.youzan.androidsdkx5.YouzanBrowser
 import com.youzan.androidsdkx5.compat.CompatWebChromeClient
@@ -53,7 +44,6 @@ import com.youzan.androidsdkx5.compat.WebChromeClientConfig
 import com.youzanyun.sdk.sample.helper.YouzanHelper
 import org.json.JSONException
 import org.json.JSONObject
-import java.lang.RuntimeException
 
 /**
  * 这里使用[WebViewFragment]对[android.webkit.WebView]生命周期有更好的管控.
@@ -155,6 +145,27 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                 super.onPageStarted(p0, p1, p2)
                 Log.d("lsd", "onPageStarted")
 
+            }
+
+
+            override fun shouldOverrideUrlLoading(p0: WebView?, p1: WebResourceRequest?): Boolean {
+                if (p1?.url?.scheme == "http") {
+                    Log.d("lsd", p1.url?.toString() + "")
+                    Toast.makeText(activity!!, "出现http", Toast.LENGTH_LONG).show()
+                    return true
+                }
+
+                return super.shouldOverrideUrlLoading(p0, p1)
+            }
+
+            override fun shouldOverrideUrlLoading(p0: WebView?, p1: String?): Boolean {
+                if (p1?.startsWith("http://") ==true ) {
+                    Log.d("lsd", p1 +  "")
+                    Toast.makeText(activity!!, "出现http", Toast.LENGTH_LONG).show()
+                    return true
+                }
+
+                return super.shouldOverrideUrlLoading(p0, p1)
             }
         })
     }
