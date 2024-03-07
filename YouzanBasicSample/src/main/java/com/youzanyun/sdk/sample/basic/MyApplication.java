@@ -17,11 +17,15 @@
 package com.youzanyun.sdk.sample.basic;
 
 import android.app.Application;
+import android.util.Log;
 
 import com.youzan.androidsdk.InitConfig;
+import com.youzan.androidsdk.LogCallback;
+import com.youzan.androidsdk.YouzanLog;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.basic.YouzanBasicSDKAdapter;
-import com.youzan.androidsdk.basic.YouzanPreloader;
+
+import org.jetbrains.annotations.NotNull;
 
 
 public class MyApplication extends Application {
@@ -35,13 +39,17 @@ public class MyApplication extends Application {
         //TODO clientId 写入
         YouzanSDK.init(this, new InitConfig.Builder()
                         .advanceHideX5Loading(false)
+                        .logCallback(new LogCallback() {
+                            @Override
+                            public boolean onLog(@NotNull String eventType, @NotNull String message) {
+                                return true;
+                            }
+                        })
                         .clientId("0073bccbaf5369028a")
                         .appkey("")
-                        .adapter( new YouzanBasicSDKAdapter())
+                        .adapter(new YouzanBasicSDKAdapter())
 
                 .build());
-
-
         // 可选
         // 预取html，一般是预取店铺主页的url。
         // 注意：当发生重定向时，预取不生效。

@@ -16,8 +16,11 @@
 package com.youzanyun.sdk.sample
 
 import android.app.Application
+import android.widget.ImageView
 import com.youzan.androidsdk.InitConfig
+import com.youzan.androidsdk.LogCallback
 import com.youzan.androidsdk.YouzanSDK
+import com.youzan.androidsdk.adapter.IImageAdapter
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter
 import com.youzan.androidsdkx5.YouzanPreloader
 import com.youzanyun.sdk.sample.config.KaeConfig
@@ -35,6 +38,21 @@ class MyApplication : Application() {
             .clientId(KaeConfig.S_CLIENT_ID)
             .appkey("")
             .adapter(YouZanSDKX5Adapter())
+            .setImageAdapter(object : IImageAdapter {
+                override fun setImage(view: ImageView, url: String) {
+
+                }
+
+                override fun setImage(view: ImageView, res: Int): Boolean {
+                    return false
+                }
+
+            })
+            .logCallback(object : LogCallback {
+                override fun onLog(eventType: String, message: String): Boolean {
+                    return true
+                }
+            })
             .build()
         YouzanSDK.init(this, config)
 
