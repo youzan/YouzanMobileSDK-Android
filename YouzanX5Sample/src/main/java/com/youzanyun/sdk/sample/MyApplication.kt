@@ -50,7 +50,7 @@ class MyApplication : Application() {
             })
             .logCallback(object : LogCallback {
                 override fun onLog(eventType: String, message: String): Boolean {
-                    return true
+                    return false
                 }
             })
             .build()

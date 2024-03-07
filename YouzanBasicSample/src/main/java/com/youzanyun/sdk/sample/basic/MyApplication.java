@@ -42,7 +42,7 @@ public class MyApplication extends Application {
                         .logCallback(new LogCallback() {
                             @Override
                             public boolean onLog(@NotNull String eventType, @NotNull String message) {
-                                return true;
+                                return false;
                             }
                         })
                         .clientId("0073bccbaf5369028a")
