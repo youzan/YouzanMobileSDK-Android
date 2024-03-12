@@ -4,6 +4,7 @@
     <!-- 允许应用程序联网 -->
     <uses-permission android:name="android.permission.INTERNET" /> <!-- 检测联网方式, 区分用户设备使用的是2G、3G或是WiFi -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- 外部存储写入权限 -->
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- 为了更好的体验需要获取地理信息的权限 (以下非必须权限) -->
     <uses-permission android:name="android.permission.ACCESS_GPS" />
     <uses-permission android:name="android.permission.ACCESS_ASSISTED_GPS" />

@@ -15,17 +15,27 @@
  */
 package com.youzanyun.sdk.sample.x5
 
+import android.Manifest
+import android.Manifest.permission.READ_PHONE_STATE
+import android.app.Activity
+import android.content.Context
+import android.content.Context.TELEPHONY_SERVICE
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
-import android.support.v4.app.FragmentPagerAdapter
-import android.support.v4.view.ViewPager
+import android.telephony.TelephonyManager
 import android.view.View
+import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentPagerAdapter
+import androidx.viewpager.widget.ViewPager
 import com.ashokvarma.bottomnavigation.BottomNavigationBar
 import com.ashokvarma.bottomnavigation.BottomNavigationBar.MODE_FIXED
 import com.ashokvarma.bottomnavigation.BottomNavigationBar.OnTabSelectedListener
 import com.ashokvarma.bottomnavigation.BottomNavigationItem
+import com.youzan.androidsdk.YouzanLog
+import com.youzan.garrison.GarrisonEngine
 import com.youzanyun.sdk.sample.config.KaeConfig
 
 class MainActivity : FragmentActivity(), View.OnClickListener {
@@ -35,6 +45,11 @@ class MainActivity : FragmentActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //  isDebug = true环境下，调用隐私api会在logcat中输出日志
+        (this@MainActivity.getSystemService(TELEPHONY_SERVICE) as TelephonyManager).deviceId
+        ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.READ_PHONE_STATE), 1)
+
         mBottomNavigator = findViewById(R.id.bottom_navigator)
         mBottomNavigator.addItem(BottomNavigationItem(R.drawable.ic_launcher, "主页"))
             .addItem(BottomNavigationItem(R.drawable.ic_launcher, "购物车"))

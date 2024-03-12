@@ -16,13 +16,17 @@
 package com.youzanyun.sdk.sample
 
 import android.app.Application
+import android.content.Context
+import android.provider.Settings
+import android.telephony.TelephonyManager
 import android.widget.ImageView
 import com.youzan.androidsdk.InitConfig
 import com.youzan.androidsdk.LogCallback
+import com.youzan.androidsdk.YouzanLog
 import com.youzan.androidsdk.YouzanSDK
 import com.youzan.androidsdk.adapter.IImageAdapter
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter
-import com.youzan.androidsdkx5.YouzanPreloader
+import com.youzan.garrison.GarrisonEngine
 import com.youzanyun.sdk.sample.config.KaeConfig
 import com.youzanyun.sdk.sample.helper.LoginHelper
 
@@ -55,7 +59,8 @@ class MyApplication : Application() {
             })
             .build()
         YouzanSDK.init(this, config)
-
+        GarrisonEngine.Builder().isDebug(true).setContext(this).build()
+        GarrisonEngine.isCacheApi = true
         // 可选
         // 预取html，一般是预取店铺主页的url。
         // 注意：当发生重定向时，预取不生效。

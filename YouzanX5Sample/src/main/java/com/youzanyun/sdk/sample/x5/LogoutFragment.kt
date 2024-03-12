@@ -17,10 +17,11 @@ package com.youzanyun.sdk.sample.x5
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat.startActivity
+import androidx.fragment.app.Fragment
 import com.youzan.androidsdk.YouzanSDK
 import com.youzanyun.sdk.sample.helper.LoginHelper
 

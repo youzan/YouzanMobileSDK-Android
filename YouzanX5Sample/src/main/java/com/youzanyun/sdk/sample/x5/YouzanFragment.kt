@@ -21,13 +21,14 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.content.ContextCompat.startActivity
+import androidx.fragment.app.Fragment
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient
 import com.tencent.smtt.sdk.WebChromeClient
 import com.tencent.smtt.sdk.WebView
@@ -58,7 +59,7 @@ import java.lang.RuntimeException
 /**
  * 这里使用[WebViewFragment]对[android.webkit.WebView]生命周期有更好的管控.
  */
-class YouzanFragment : WebViewFragment(), OnRefreshListener {
+class YouzanFragment : WebViewFragment(), SwipeRefreshLayout.OnRefreshListener {
     private lateinit var mView: YouzanBrowser
     private val mRefreshLayout: SwipeRefreshLayout? = null
     private var mToolbar: Toolbar? = null
@@ -66,7 +67,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
     companion object {
         private const val CODE_REQUEST_LOGIN = 0x1000
 
-        fun newInstance(url: String) : Fragment{
+        fun newInstance(url: String) : Fragment {
             val fg = YouzanFragment()
             fg.arguments = Bundle().apply {
                 putString(YouzanActivity.KEY_URL, url)
@@ -266,7 +267,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         mView!!.reload()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (CODE_REQUEST_LOGIN == requestCode) { // 如果是登录事件返回
             if (resultCode == Activity.RESULT_OK) {
