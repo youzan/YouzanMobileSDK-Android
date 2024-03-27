@@ -50,6 +50,7 @@ import com.youzan.androidsdkx5.YouzanBrowser
 import com.youzan.androidsdkx5.compat.CompatWebChromeClient
 import com.youzan.androidsdkx5.compat.VideoCallback
 import com.youzan.androidsdkx5.compat.WebChromeClientConfig
+import com.youzan.androidsdkx5.plugin.SaveImageListener
 import com.youzanyun.sdk.sample.helper.YouzanHelper
 import org.json.JSONException
 import org.json.JSONObject
@@ -105,6 +106,12 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         mToolbar = contentView.findViewById<View>(R.id.toolbar) as Toolbar
         //        mRefreshLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe);
 
+        mView.setSaveImageListener(object : SaveImageListener {
+            override fun onSaveImage(result: WebView.HitTestResult?): Boolean {
+                // 长按保存图片流程
+                return  true
+            }
+        })
         //分享按钮
         mToolbar!!.setTitle(R.string.loading_page)
         mToolbar!!.inflateMenu(R.menu.menu_youzan_share)
