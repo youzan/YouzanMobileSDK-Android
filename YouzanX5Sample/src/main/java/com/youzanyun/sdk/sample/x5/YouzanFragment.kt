@@ -78,7 +78,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         view.findViewById<View>(R.id.back).setOnClickListener {
-            Log.d("lsd", "click")
+            onBackPressed()
         }
         setupViews(view)
         setupYouzan()

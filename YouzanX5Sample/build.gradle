@@ -20,7 +20,7 @@ apply plugin: 'kotlin-android'
 //可选 代码支持通过view id获取对象，不再需要findViewById
 apply plugin: 'kotlin-android-extensions'
 
-def switchDep = "../../deploy/switchDep.gradle"
+//def switchDep = "../../deploy/switchDep.gradle"
 //if (file(switchDep).exists()) {
 //    apply from: switchDep
 //} else {

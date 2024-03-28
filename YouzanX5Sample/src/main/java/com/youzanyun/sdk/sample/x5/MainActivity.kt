@@ -37,8 +37,6 @@ class MainActivity : FragmentActivity(), View.OnClickListener {
         setContentView(R.layout.activity_main)
         mBottomNavigator = findViewById(R.id.bottom_navigator)
         mBottomNavigator.addItem(BottomNavigationItem(R.drawable.ic_launcher, "主页"))
-            .addItem(BottomNavigationItem(R.drawable.ic_launcher, "购物车"))
-            .addItem(BottomNavigationItem(R.drawable.ic_launcher, "个人中心"))
             .addItem(BottomNavigationItem(R.drawable.ic_launcher, "退出入口"))
             .setMode(MODE_FIXED)
             .initialise()
@@ -74,24 +72,18 @@ class MainActivity : FragmentActivity(), View.OnClickListener {
         })
         mViewPager.offscreenPageLimit = 3
         val fg0 = YouzanFragment.newInstance(KaeConfig.S_URL_MAIN)
-        val fg1 = YouzanFragment.newInstance(KaeConfig.S_URL_MART)
-        val fg2 = YouzanFragment.newInstance(KaeConfig.S_URL_person)
         val fg3 = LogoutFragment()
 
         fgLists.add(fg0)
-        fgLists.add(fg1)
-        fgLists.add(fg2)
         fgLists.add(fg3)
         mViewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager) {
             override fun getCount(): Int {
-                return 4
+                return 2
             }
 
             override fun getItem(p0: Int): Fragment {
                 return when (p0) {
                     0 -> fg0
-                    1 -> fg1
-                    2 -> fg2
                     3 -> fg3
                     else -> fg3
                 }
