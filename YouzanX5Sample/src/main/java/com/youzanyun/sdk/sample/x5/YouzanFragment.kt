@@ -161,7 +161,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             override fun onPageStarted(p0: WebView?, p1: String?, p2: Bitmap?) {
                 super.onPageStarted(p0, p1, p2)
                 Log.d("lsd", "onPageStarted")
-
+                Toast.makeText(activity, "onPageStarted", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -265,7 +265,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 
     override fun onBackPressed(): Boolean {
         //页面回退
-        return webView.pageGoBack()
+        return webView.pageGoBack();
     }
 
     override fun onRefresh() {

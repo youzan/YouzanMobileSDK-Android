@@ -16,6 +16,7 @@
 package com.youzanyun.sdk.sample
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import android.widget.ImageView
 import com.tencent.smtt.export.external.TbsCoreSettings
@@ -39,53 +40,25 @@ class MyApplication : Application() {
         //TODO clientId 写入
         val config = InitConfig.builder()
             .settings(mutableMapOf(
-                YouzanSettings.SETTINGS_SUPPORT_SAVE_IMAGE_WITH_LONG_PRESS to false).toMap()
+                YouzanSettings.SETTINGS_SUPPORT_SAVE_IMAGE_WITH_LONG_PRESS to true).toMap()
             )
             .clientId(KaeConfig.S_CLIENT_ID)
             .appkey("")
             .adapter(object : YouZanSDKX5Adapter() {
-                // x5初始化 https://x5.tencent.com/docs/access.html
-                override fun onCoreInitFinished() {
-                    super.onCoreInitFinished()
-                    Log.d("youzan", "onCoreInitFinished")
+                override fun clearCookieByHost(p0: Context?, p1: String?) {
+                    super.clearCookieByHost(p0, p1)
                 }
 
-                override fun onViewInitFinished(b: Boolean) {
-                    super.onViewInitFinished(b)
-                    Log.d("youzan", "onViewInitFinished")
+                override fun clearLocalStorage() {
+                    super.clearLocalStorage()
                 }
-
-                override fun onStartX5TbsInit() {
-                    super.onStartX5TbsInit()
-                    Log.d("youzan", "onStartX5TbsInit")
-                    QbSdk.setDownloadWithoutWifi(true)
-                }
-
-                override fun getX5TbsSettings(): MutableMap<String, Any> {
-                    Log.d("youzan", "getX5TbsSettings")
-                    val tbsSetings = mutableMapOf<String, Any>()
-                    return tbsSetings
-                }
-
-
             })
-            .setImageAdapter(object : IImageAdapter {
-
-                override fun setImage(view: ImageView, url: String) {
-
-                }
-
-                override fun setImage(view: ImageView, res: Int): Boolean {
-                    return false
-                }
-
-            })
-
             .logCallback(object : LogCallback {
                 override fun onLog(eventType: String, message: String): Boolean {
                     return false
                 }
             })
+
             .build()
         YouzanSDK.init(this, config)
 
