@@ -8,5 +8,6 @@ package com.youzanyun.sdk.sample.config
 object KaeConfig {
     // clientId
     const val S_CLIENT_ID = "0073bccbaf5369028a"
-    const val S_URL_MAIN = "https://shop159882676.m.youzan.com/wscshop/showcase/homepage?kdt_id=159690508&sub_kdt_id=159690508"
+//    const val S_URL_MAIN = "https://shop159882676.m.youzan.com/wscshop/showcase/homepage?kdt_id=159690508&sub_kdt_id=159690508"
+    const val S_URL_MAIN = "https://shop16911610.m.youzan.com/wscshop/showcase/homepage?kdt_id=16719442"
 }
