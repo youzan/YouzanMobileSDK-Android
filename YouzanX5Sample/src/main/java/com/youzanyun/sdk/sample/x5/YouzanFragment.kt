@@ -263,7 +263,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         mView!!.reload()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (CODE_REQUEST_LOGIN == requestCode) { // 如果是登录事件返回
             if (resultCode == Activity.RESULT_OK) {
