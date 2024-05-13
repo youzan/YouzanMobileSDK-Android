@@ -21,14 +21,17 @@ import android.util.Log
 import android.widget.ImageView
 import com.tencent.smtt.export.external.TbsCoreSettings
 import com.tencent.smtt.sdk.QbSdk
+import com.tencent.smtt.sdk.WebView
 import com.youzan.androidsdk.InitConfig
 import com.youzan.androidsdk.LogCallback
 import com.youzan.androidsdk.YouzanSDK
 import com.youzan.androidsdk.YouzanSettings
 import com.youzan.androidsdk.adapter.IImageAdapter
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter
+import com.youzan.androidsdkx5.YouzanPreloader
 import com.youzanyun.sdk.sample.config.KaeConfig
 import com.youzanyun.sdk.sample.helper.LoginHelper
+import com.youzanyun.sdk.sample.helper.WebViewPool
 
 class MyApplication : Application() {
     override fun onCreate() {
@@ -65,7 +68,8 @@ class MyApplication : Application() {
         // 可选
         // 预取html，一般是预取店铺主页的url。
         // 注意：当发生重定向时，预取不生效。
-//         YouzanPreloader.preloadHtml(this, "准备预加载的页面的URL");
+         YouzanPreloader.preloadHtml(this, KaeConfig.S_URL_MAIN);
+        WebViewPool.getInstance().init(this, 1);
         LoginHelper.init(this)
     }
 }

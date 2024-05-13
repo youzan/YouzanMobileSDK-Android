@@ -15,11 +15,13 @@
  */
 package com.youzanyun.sdk.sample.x5
 
+import android.annotation.TargetApi
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
@@ -28,27 +30,42 @@ import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient
-import com.tencent.smtt.sdk.WebChromeClient
+import com.bumptech.glide.Glide
+import com.tencent.smtt.export.external.interfaces.WebResourceRequest
+import com.tencent.smtt.export.external.interfaces.WebResourceResponse
+import com.tencent.smtt.sdk.MimeTypeMap
 import com.tencent.smtt.sdk.WebView
 import com.tencent.smtt.sdk.WebViewClient
+import com.youzan.androidsdk.YouzanLog
 import com.youzan.androidsdk.event.*
 import com.youzan.androidsdk.model.goods.GoodsShareModel
 import com.youzan.androidsdk.model.refresh.RefreshChangeModel
 import com.youzan.androidsdk.model.trade.TradePayFinishedModel
 import com.youzan.androidsdkx5.YouzanBrowser
+import com.youzan.androidsdkx5.YouzanPreloader
 import com.youzan.androidsdkx5.compat.CompatWebChromeClient
 import com.youzan.androidsdkx5.compat.VideoCallback
 import com.youzan.androidsdkx5.compat.WebChromeClientConfig
 import com.youzan.androidsdkx5.plugin.SaveImageListener
+import com.youzan.spiderman.cache.SpiderMan
+import com.youzan.spiderman.html.HtmlHeader
+import com.youzan.spiderman.html.HtmlStatistic
+import com.youzan.spiderman.utils.Logger
+import com.youzanyun.sdk.sample.config.KaeConfig
 import com.youzanyun.sdk.sample.helper.YouzanHelper
+import okhttp3.*
+import okio.ByteString.encodeUtf8
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.File
+import java.io.IOException
+import java.util.*
 
 /**
- * 这里使用[WebViewFragment]对[android.webkit.WebView]生命周期有更好的管控.
+ * 这里使用[WebViewFragment]对[WebView]生命周期有更好的管控.
  */
 class YouzanFragment : WebViewFragment(), OnRefreshListener {
+    private val client: OkHttpClient = OkHttpClient()
     private lateinit var mView: YouzanBrowser
     private val mRefreshLayout: SwipeRefreshLayout? = null
     private var mToolbar: Toolbar? = null
@@ -122,14 +139,14 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 //        mRefreshLayout.setOnRefreshListener(this);
 //        mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.RED);
 //        mRefreshLayout.setEnabled(false);
-        mView.setWebChromeClient(object : WebChromeClient() {
-            override fun onShowCustomView(view: View, customViewCallback: IX5WebChromeClient.CustomViewCallback) {
-                super.onShowCustomView(view, customViewCallback)
-                customViewCallback.onCustomViewHidden() // 避免视频未播放时，点击全屏白屏的问题
-            }
-
-
-        })
+//        mView.setWebChromeClient(object : WebChromeClient() {
+//            override fun onShowCustomView(view: View, customViewCallback: IX5WebChromeClient.CustomViewCallback) {
+//                super.onShowCustomView(view, customViewCallback)
+//                customViewCallback.onCustomViewHidden() // 避免视频未播放时，点击全屏白屏的问题
+//            }
+//
+//
+//        })
 
         mView.setWebChromeClient(CompatWebChromeClient(
             WebChromeClientConfig(
@@ -139,7 +156,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                     }
                 }
             )
-        ))
+        ) )
 
         mView.setWebViewClient(object : WebViewClient() {
             override fun onPageFinished(p0: WebView?, p1: String?) {
@@ -151,6 +168,41 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                 super.onPageStarted(p0, p1, p2)
                 Log.d("lsd", "onPageStarted")
                 Toast.makeText(activity, "onPageStarted", Toast.LENGTH_SHORT).show()
+            }
+
+            private fun interceptHtmlRequest(context: Context, url: String): WebResourceResponse? {
+                val statistic = HtmlStatistic(url)
+                val htmlResponse = SpiderMan.getInstance().interceptHtml(context, url, statistic)
+                if (htmlResponse != null) {
+                    val webResourceResponse = WebResourceResponse(
+                        "text/html", htmlResponse.encoding, htmlResponse.contentStream
+                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        webResourceResponse.responseHeaders = HtmlHeader.transferHeaderMapList(htmlResponse.header) // add response header
+                    }
+                    return webResourceResponse
+                }
+                return null
+            }
+
+            @TargetApi(21)
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                val url = request.url.toString()
+                //                Logger.e(TAG, "intercept request, url:" + url);
+                if (url == KaeConfig.S_URL_MAIN || url.endsWith(".js") || url.endsWith(".css")) { // html
+                    YouzanLog.addSDKLog( "1. 命中的intercept html:$url")
+                    // may call multi time with one html url, so the stream is cannot be used in two clients
+                    val  res: WebResourceResponse? =  interceptHtmlRequest(view.context, url)
+                    if (res != null) {
+                        YouzanLog.addSDKLog( "2. intercept html:$url")
+                        return res
+                    } else {
+                        YouzanPreloader.preloadHtml(view.context, url);
+                    }
+                    return super.shouldInterceptRequest(view, url)
+                }
+
+                return super.shouldInterceptRequest(view, request)
             }
         })
     }
@@ -245,6 +297,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 
     override fun getWebViewId(): Int {
         //YouzanBrowser在布局文件中的id
+//        return 0
         return R.id.view
     }
 
@@ -255,7 +308,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 
     override fun onBackPressed(): Boolean {
         //页面回退
-        return webView.pageGoBack();
+        return mView.pageGoBack();
     }
 
     override fun onRefresh() {
