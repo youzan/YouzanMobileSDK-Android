@@ -21,8 +21,10 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.support.annotation.RequiresApi
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
@@ -30,10 +32,8 @@ import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import com.bumptech.glide.Glide
 import com.tencent.smtt.export.external.interfaces.WebResourceRequest
 import com.tencent.smtt.export.external.interfaces.WebResourceResponse
-import com.tencent.smtt.sdk.MimeTypeMap
 import com.tencent.smtt.sdk.WebView
 import com.tencent.smtt.sdk.WebViewClient
 import com.youzan.androidsdk.YouzanLog
@@ -50,16 +50,15 @@ import com.youzan.androidsdkx5.plugin.SaveImageListener
 import com.youzan.spiderman.cache.SpiderMan
 import com.youzan.spiderman.html.HtmlHeader
 import com.youzan.spiderman.html.HtmlStatistic
-import com.youzan.spiderman.utils.Logger
 import com.youzanyun.sdk.sample.config.KaeConfig
 import com.youzanyun.sdk.sample.helper.YouzanHelper
 import okhttp3.*
-import okio.ByteString.encodeUtf8
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.File
-import java.io.IOException
+import ren.yale.android.cachewebviewlib.WebViewCacheInterceptorInst
+import java.io.InputStream
 import java.util.*
+
 
 /**
  * 这里使用[WebViewFragment]对[WebView]生命周期有更好的管控.
@@ -148,7 +147,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 //
 //        })
 
-        mView.setWebChromeClient(CompatWebChromeClient(
+        mView.setWebChromeClient(object: CompatWebChromeClient(
             WebChromeClientConfig(
                 true, object : VideoCallback {
                     override fun onVideoCallback(b: Boolean) {
@@ -156,7 +155,12 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                     }
                 }
             )
-        ) )
+        ) {
+            override fun onReceivedTitle(p0: WebView?, p1: String?) {
+                super.onReceivedTitle(p0, p1)
+                mToolbar?.title = p1
+            }
+        })
 
         mView.setWebViewClient(object : WebViewClient() {
             override fun onPageFinished(p0: WebView?, p1: String?) {
@@ -184,14 +188,16 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                 }
                 return null
             }
+//
+//            override fun shouldInterceptRequest(webView: WebView?, s: String?): WebResourceResponse? {
+//                return WebResourceResponseAdapter.adapter(WebViewCacheInterceptorInst.getInstance().interceptRequest(s))
+//            }
 
             @TargetApi(21)
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                 val url = request.url.toString()
-                //                Logger.e(TAG, "intercept request, url:" + url);
-                if (url == KaeConfig.S_URL_MAIN || url.endsWith(".js") || url.endsWith(".css")) { // html
+                if(url == KaeConfig.S_URL_MAIN ) {
                     YouzanLog.addSDKLog( "1. 命中的intercept html:$url")
-                    // may call multi time with one html url, so the stream is cannot be used in two clients
                     val  res: WebResourceResponse? =  interceptHtmlRequest(view.context, url)
                     if (res != null) {
                         YouzanLog.addSDKLog( "2. intercept html:$url")
@@ -199,8 +205,25 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                     } else {
                         YouzanPreloader.preloadHtml(view.context, url);
                     }
-                    return super.shouldInterceptRequest(view, url)
                 }
+
+                return WebResourceResponseAdapter.adapter(WebViewCacheInterceptorInst.getInstance().
+                interceptRequest(WebResourceRequestAdapter.adapter(request)));
+//
+//
+//                //                Logger.e(TAG, "intercept request, url:" + url);
+//                if (url == KaeConfig.S_URL_MAIN || url.endsWith(".js") || url.endsWith(".css")) { // html
+//                    YouzanLog.addSDKLog( "1. 命中的intercept html:$url")
+//                    // may call multi time with one html url, so the stream is cannot be used in two clients
+//                    val  res: WebResourceResponse? =  interceptHtmlRequest(view.context, url)
+//                    if (res != null) {
+//                        YouzanLog.addSDKLog( "2. intercept html:$url")
+//                        return res
+//                    } else {
+//                        YouzanPreloader.preloadHtml(view.context, url);
+//                    }
+//                    return super.shouldInterceptRequest(view, url)
+//                }
 
                 return super.shouldInterceptRequest(view, request)
             }
@@ -332,3 +355,74 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         }
     }
 }
+
+class WebResourceResponseAdapter private constructor(private val mWebResourceResponse: android.webkit.WebResourceResponse) : WebResourceResponse() {
+    override fun getMimeType(): String {
+        return mWebResourceResponse.mimeType
+    }
+
+    override fun getData(): InputStream {
+        return mWebResourceResponse.data
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    override fun getStatusCode(): Int {
+        return mWebResourceResponse.statusCode
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    override fun getResponseHeaders(): Map<String, String> {
+        return mWebResourceResponse.responseHeaders
+    }
+
+    override fun getEncoding(): String {
+        return mWebResourceResponse.encoding
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    override fun getReasonPhrase(): String {
+        return mWebResourceResponse.reasonPhrase
+    }
+
+    companion object {
+        fun adapter(webResourceResponse: android.webkit.WebResourceResponse?): WebResourceResponseAdapter? {
+            return webResourceResponse?.let { WebResourceResponseAdapter(it) }
+        }
+    }
+}
+
+
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+class WebResourceRequestAdapter private constructor(private val mWebResourceRequest: WebResourceRequest) : android.webkit.WebResourceRequest {
+    override fun getUrl(): Uri {
+        return mWebResourceRequest.url
+    }
+
+    override fun isForMainFrame(): Boolean {
+        return mWebResourceRequest.isForMainFrame
+    }
+
+    override fun isRedirect(): Boolean {
+        return mWebResourceRequest.isRedirect
+    }
+
+    override fun hasGesture(): Boolean {
+        return mWebResourceRequest.hasGesture()
+    }
+
+    override fun getMethod(): String {
+        return mWebResourceRequest.method
+    }
+
+    override fun getRequestHeaders(): Map<String, String> {
+        return mWebResourceRequest.requestHeaders
+    }
+
+    companion object {
+        fun adapter(x5Request: WebResourceRequest): WebResourceRequestAdapter {
+            return WebResourceRequestAdapter(x5Request)
+        }
+    }
+}
+
+

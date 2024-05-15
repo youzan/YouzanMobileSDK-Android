@@ -70,4 +70,5 @@ dependencies {
     //x5版本
     implementation("com.youzanyun.open.mobile:x5sdk:7.14.16")
     implementation 'com.ashokvarma.android:bottom-navigation-bar:2.0.3'
+    implementation 'ren.yale.android:cachewebviewlib:2.2.1'
 }

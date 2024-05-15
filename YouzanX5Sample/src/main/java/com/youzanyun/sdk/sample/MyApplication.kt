@@ -17,21 +17,16 @@ package com.youzanyun.sdk.sample
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
-import android.widget.ImageView
-import com.tencent.smtt.export.external.TbsCoreSettings
-import com.tencent.smtt.sdk.QbSdk
-import com.tencent.smtt.sdk.WebView
 import com.youzan.androidsdk.InitConfig
 import com.youzan.androidsdk.LogCallback
 import com.youzan.androidsdk.YouzanSDK
 import com.youzan.androidsdk.YouzanSettings
-import com.youzan.androidsdk.adapter.IImageAdapter
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter
 import com.youzan.androidsdkx5.YouzanPreloader
 import com.youzanyun.sdk.sample.config.KaeConfig
 import com.youzanyun.sdk.sample.helper.LoginHelper
-import com.youzanyun.sdk.sample.helper.WebViewPool
+import ren.yale.android.cachewebviewlib.WebViewCacheInterceptor
+import ren.yale.android.cachewebviewlib.WebViewCacheInterceptorInst
 
 class MyApplication : Application() {
     override fun onCreate() {
@@ -68,8 +63,8 @@ class MyApplication : Application() {
         // 可选
         // 预取html，一般是预取店铺主页的url。
         // 注意：当发生重定向时，预取不生效。
-         YouzanPreloader.preloadHtml(this, KaeConfig.S_URL_MAIN);
-        WebViewPool.getInstance().init(this, 1);
+        YouzanPreloader.preloadHtml(this, KaeConfig.S_URL_MAIN);
+        WebViewCacheInterceptorInst.getInstance().init(WebViewCacheInterceptor.Builder(this))
         LoginHelper.init(this)
     }
 }
