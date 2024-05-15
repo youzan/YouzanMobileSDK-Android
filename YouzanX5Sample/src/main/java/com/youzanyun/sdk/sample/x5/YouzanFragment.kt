@@ -207,8 +207,8 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                     }
                 }
 
-                return WebResourceResponseAdapter.adapter(WebViewCacheInterceptorInst.getInstance().
-                interceptRequest(WebResourceRequestAdapter.adapter(request)));
+//                return WebResourceResponseAdapter.adapter(WebViewCacheInterceptorInst.getInstance().
+//                interceptRequest(WebResourceRequestAdapter.adapter(request)));
 //
 //
 //                //                Logger.e(TAG, "intercept request, url:" + url);
