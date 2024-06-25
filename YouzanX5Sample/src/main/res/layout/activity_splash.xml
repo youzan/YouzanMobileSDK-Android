@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:orientation="vertical"
+  android:gravity="center_horizontal"
     android:layout_height="match_parent"
     tools:context=".SplashActivity">
 
@@ -11,6 +12,21 @@
         android:layout_height="80dp"
         android:layout_centerInParent="true"
         android:src="@mipmap/ic_launcher" />
+
+    <EditText
+        android:id="@+id/url"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="Name" />
+
+    <Button
+        android:id="@+id/go"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Button" />
+
 
     <TextView
         android:id="@+id/go_without_login"
@@ -30,6 +46,15 @@
         android:layout_height="80dp"
         android:layout_centerInParent="true"
         android:text="先登录后进入" />
+    <TextView
+        android:id="@+id/logout"
+        android:layout_marginTop="12dp"
+        android:background="#F4F4B8"
+        android:gravity="center"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_centerInParent="true"
+        android:text="登出" />
 
 
 

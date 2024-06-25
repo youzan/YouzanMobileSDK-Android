@@ -32,8 +32,10 @@ import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import com.tencent.smtt.export.external.interfaces.WebResourceError
 import com.tencent.smtt.export.external.interfaces.WebResourceRequest
 import com.tencent.smtt.export.external.interfaces.WebResourceResponse
+import com.tencent.smtt.sdk.WebSettings
 import com.tencent.smtt.sdk.WebView
 import com.tencent.smtt.sdk.WebViewClient
 import com.youzan.androidsdk.YouzanLog
@@ -46,7 +48,6 @@ import com.youzan.androidsdkx5.YouzanPreloader
 import com.youzan.androidsdkx5.compat.CompatWebChromeClient
 import com.youzan.androidsdkx5.compat.VideoCallback
 import com.youzan.androidsdkx5.compat.WebChromeClientConfig
-import com.youzan.androidsdkx5.plugin.SaveImageListener
 import com.youzan.spiderman.cache.SpiderMan
 import com.youzan.spiderman.html.HtmlHeader
 import com.youzan.spiderman.html.HtmlStatistic
@@ -55,7 +56,6 @@ import com.youzanyun.sdk.sample.helper.YouzanHelper
 import okhttp3.*
 import org.json.JSONException
 import org.json.JSONObject
-import ren.yale.android.cachewebviewlib.WebViewCacheInterceptorInst
 import java.io.InputStream
 import java.util.*
 
@@ -87,6 +87,9 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         }
         setupViews(view)
         setupYouzan()
+        val settings = webView.settings
+        settings.cacheMode = WebSettings.LOAD_NO_CACHE
+
         val url : String? = arguments!!.getString(YouzanActivity.KEY_URL)
         if (url != null) {
             mView.loadUrl(url)
@@ -111,12 +114,12 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         mToolbar = contentView.findViewById<View>(R.id.toolbar) as Toolbar
         //        mRefreshLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe);
 
-        mView.setSaveImageListener(object : SaveImageListener {
-            override fun onSaveImage(result: WebView.HitTestResult?): Boolean {
-                // 长按保存图片流程
-                return  true
-            }
-        })
+//        mView.setSaveImageListener(object : SaveImageListener {
+//            override fun onSaveImage(result: WebView.HitTestResult?): Boolean {
+//                // 长按保存图片流程
+//                return  true
+//            }
+//        })
         //分享按钮
         mToolbar!!.setTitle(R.string.loading_page)
         mToolbar!!.inflateMenu(R.menu.menu_youzan_share)
@@ -163,6 +166,14 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         })
 
         mView.setWebViewClient(object : WebViewClient() {
+
+            override fun onReceivedError(p0: WebView?, p1: WebResourceRequest?, p2: WebResourceError?) {
+                super.onReceivedError(p0, p1, p2)
+            }
+
+            override fun shouldOverrideUrlLoading(p0: WebView?, p1: WebResourceRequest?): Boolean {
+                return super.shouldOverrideUrlLoading(p0, p1)
+            }
             override fun onPageFinished(p0: WebView?, p1: String?) {
                 super.onPageFinished(p0, p1)
                 Log.d("lsd", "onPageFinished")
@@ -192,7 +203,9 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 //            override fun shouldInterceptRequest(webView: WebView?, s: String?): WebResourceResponse? {
 //                return WebResourceResponseAdapter.adapter(WebViewCacheInterceptorInst.getInstance().interceptRequest(s))
 //            }
-
+//            https://shop139935761.youzan.com/wscuser/membercenter?alias=Qn7FnnQwAB&reft=1715852464115&spm=f.131511492
+//             "https://shop139935761.youzan.com/wscuser/membercenter?alias=Qn7FnnQwAB&reft=1715852464115&spm=f.131511492"
+//             "https://shop139935761.youzan.com/wscuser/membercenter?alias=Qn7FnnQwAB&reft=1715852656259&spm=f.131511492"
             @TargetApi(21)
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                 val url = request.url.toString()
@@ -249,7 +262,10 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                 //TODO 自行编码实现. 具体可参考开发文档中的伪代码实现
                 //TODO 手机号自己填入
                 YouzanHelper.loginYouzan(activity!!, {
-                    mView.reload()
+                    mView.postDelayed({
+                        mView.reload()
+                    }, 500)
+
                 })
 
             }

@@ -19,7 +19,7 @@ class LoginActivity : AppCompatActivity() {
         findViewById<View>(R.id.login_tv).setOnClickListener {
 
             YouzanHelper.loginYouzan(this@LoginActivity) {
-                LoginHelper.setLogin(true)
+                LoginHelper.setLogin(false)
                 Intent(this@LoginActivity, MainActivity::class.java).apply {
                     this.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(this)

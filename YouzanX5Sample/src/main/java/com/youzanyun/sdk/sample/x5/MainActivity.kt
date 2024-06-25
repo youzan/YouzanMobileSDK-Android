@@ -15,7 +15,11 @@
  */
 package com.youzanyun.sdk.sample.x5
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.ConnectivityManager.TYPE_WIFI
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
@@ -27,6 +31,7 @@ import com.ashokvarma.bottomnavigation.BottomNavigationBar.MODE_FIXED
 import com.ashokvarma.bottomnavigation.BottomNavigationBar.OnTabSelectedListener
 import com.ashokvarma.bottomnavigation.BottomNavigationItem
 import com.youzanyun.sdk.sample.config.KaeConfig
+
 
 class MainActivity : FragmentActivity(), View.OnClickListener {
     private lateinit var mBottomNavigator: BottomNavigationBar
@@ -71,7 +76,7 @@ class MainActivity : FragmentActivity(), View.OnClickListener {
 
         })
         mViewPager.offscreenPageLimit = 3
-        val fg0 = YouzanFragment.newInstance(KaeConfig.S_URL_MAIN)
+        val fg0 = YouzanFragment.newInstance(intent.getStringExtra("url") ?: KaeConfig.S_URL_MAIN)
         val fg3 = LogoutFragment()
 
         fgLists.add(fg0)
@@ -125,6 +130,26 @@ class MainActivity : FragmentActivity(), View.OnClickListener {
 
         super.onBackPressed()
     }
+
+    override fun onResume() {
+        super.onResume()
+        getWifiSSID(this@MainActivity)
+    }
+
+    fun getWifiSSID(context: Context): String? {
+        var bssid = ""
+        val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            ?: return bssid
+        val activeNetworkInfo = manager.activeNetworkInfo
+        if (activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting && activeNetworkInfo.type == TYPE_WIFI) {
+            val wifiManager = context.getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+                ?: return bssid
+            val connectionInfo = wifiManager.connectionInfo
+            bssid = connectionInfo.bssid
+        }
+        return bssid
+    }
+
 }
 
 
