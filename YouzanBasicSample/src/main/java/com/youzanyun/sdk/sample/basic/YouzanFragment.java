@@ -22,19 +22,23 @@ import static android.app.Activity.RESULT_OK;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.http.SslError;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.SslErrorHandler;
+import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.youzan.androidsdk.YouzanLog;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.YouzanToken;
 import com.youzan.androidsdk.YzLoginCallback;
@@ -109,6 +113,22 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
             public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
                 // 接入是需手动处理此部分证书逻辑
                 handler.proceed();
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                // 页面加载完成后执行 JavaScript 获取 performance.timing
+                view.evaluateJavascript("javascript:(function() { return JSON.stringify(window.performance.timing); })();",
+                        new ValueCallback<String>() {
+                            @Override
+                            public void onReceiveValue(String timingJson) {
+                                // timingJson 包含 performance.timing 的 JSON 字符串
+                                YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, timingJson);
+//                                printPerf(timingJson);
+                            }
+                        });
             }
         });
 
@@ -241,7 +261,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         //重新加载页面
         mView.reload();
     }
-    
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -258,4 +278,63 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
             mView.receiveFile(requestCode, data);
         }
     }
+
+    public void printPerf(String timingJson) {
+        try {
+            String value1 = timingJson.replaceAll("\\\\\"", "\"");
+            TimingData timingData = new Gson().fromJson(value1.substring(1, value1.length() - 1), TimingData.class);
+//            // 计算关键时间点的耗时
+            long navigationTime = timingData.fetchStart - timingData.navigationStart;
+            long domainLookupTime = timingData.domainLookupEnd - timingData.domainLookupStart;
+            long connectTime = timingData.connectEnd - timingData.connectStart;
+            long requestTime = timingData.responseStart - timingData.requestStart;
+            long responseTime = timingData.responseEnd - timingData.responseStart;
+            long domParsingTime = timingData.domComplete - timingData.domLoading;
+            long domInteractiveTime = timingData.domInteractive - timingData.fetchStart;
+            long domContentLoadedTime = timingData.domContentLoadedEventEnd - timingData.domContentLoadedEventStart;
+            long loadEventTime = timingData.loadEventEnd - timingData.loadEventStart;
+            long totalTime = timingData.loadEventEnd - timingData.navigationStart;
+//
+            // 打印耗时信息或者做其他处理
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "PerformanceTiming, Timing JSON: " + timingJson);
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "Navigation Time: " + navigationTime + " ms");
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "Domain Lookup Time: " + domainLookupTime + " ms");
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "Connect Time: " + connectTime + " ms");
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "Request Time: " + requestTime + " ms");
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "Response Time: " + responseTime + " ms");
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "DOM Parsing Time: " + domParsingTime + " ms");
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "DOM Interactive Time: " + domInteractiveTime + " ms");
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "DOM Content Loaded Time: " + domContentLoadedTime + " ms");
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "Load Event Time: " + loadEventTime + " ms");
+            YouzanLog.addLog(YouzanLog.S_EVENT_TYPE_PERF, "Total Time: " + totalTime + " ms");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public class TimingData {
+        private long connectStart;
+        private long navigationStart;
+        private long loadEventEnd;
+        private long domLoading;
+        private long secureConnectionStart;
+        private long fetchStart;
+        private long domContentLoadedEventStart;
+        private long responseStart;
+        private long responseEnd;
+        private long domInteractive;
+        private long domainLookupEnd;
+        private long redirectStart;
+        private long requestStart;
+        private long unloadEventEnd;
+        private long unloadEventStart;
+        private long domComplete;
+        private long domainLookupStart;
+        private long loadEventStart;
+        private long domContentLoadedEventEnd;
+        private long redirectEnd;
+        private long connectEnd;
+    }
 }
+

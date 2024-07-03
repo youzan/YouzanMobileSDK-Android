@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.EditText
 import com.youzan.androidsdk.YouzanSDK
+import com.youzan.androidsdkx5.YouzanPreloader
+import com.youzanyun.sdk.sample.config.KaeConfig
 
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,7 +26,8 @@ class SplashActivity : AppCompatActivity() {
 
 
         findViewById<View>(R.id.logout).setOnClickListener {
-          YouzanSDK.userLogout(this@SplashActivity)
+//          YouzanSDK.userLogout(this@SplashActivity)
+            YouzanPreloader.preloadHtml(this@SplashActivity.application, KaeConfig.S_URL_MAIN)
         }
 
     }

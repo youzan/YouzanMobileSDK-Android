@@ -17,17 +17,15 @@
 package com.youzanyun.sdk.sample.basic;
 
 import android.app.Application;
+import android.os.Build;
+import android.os.Looper;
+import android.os.MessageQueue;
 
+import com.youzan.androidsdk.InitCallBack;
 import com.youzan.androidsdk.InitConfig;
-import com.youzan.androidsdk.LogCallback;
-import com.youzan.androidsdk.YouzanLog;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.basic.YouzanBasicSDKAdapter;
-import com.youzan.androidsdk.basic.YouzanSettings;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
+import com.youzan.androidsdk.basic.YouzanPreloader;
 
 
 public class MyApplication extends Application {
@@ -38,29 +36,30 @@ public class MyApplication extends Application {
         // 初始化SDK
         //appkey:可以前往<a href="http://open.youzan.com/sdk/access">有赞开放平台</a>申请
         YouzanSDK.isDebug(true);
-        //TODO clientId 写入
-        HashMap settings = new HashMap();
-        settings.put(YouzanSettings.SETTINGS_SUPPORT_ENABLE_IMEI, false);
-
         YouzanSDK.init(this, new InitConfig.Builder()
-                .settings(settings)
-                .logCallback(new LogCallback() {
-                    @Override
-                    public boolean onLog(@NotNull String eventType, @NotNull String message) {
-                        return false;
-                    }
-                })
                 .clientId("0073bccbaf5369028a")
-                .appkey("")
+                .isSupportOffline(false)
+                        .initCallBack(new InitCallBack() {
+                            @Override
+                            public void readyCallBack(boolean ready, String message) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    Looper.getMainLooper().getQueue().addIdleHandler(new MessageQueue.IdleHandler() {
+                                        @Override
+                                        public boolean queueIdle() {
+                                            // 可选， 需要在主线程执行
+                                            YouzanPreloader.preloadOfflineRes(MyApplication.this, KaeConfig.URL_MAIN );
+                                            return false;
+                                        }
+                                    });
+                                }
+                            }
+                        })
                 .adapter(new YouzanBasicSDKAdapter())
                 .build()
         );
 
 
 
-        // 可选
-        // 预取html，一般是预取店铺主页的url。
-        // 注意：当发生重定向时，预取不生效。
-//         YouzanPreloader.preloadHtml(this, "准备预加载的页面的URL");
+
     }
 }

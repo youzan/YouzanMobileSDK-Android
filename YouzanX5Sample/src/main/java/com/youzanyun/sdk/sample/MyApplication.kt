@@ -15,21 +15,19 @@
  */
 package com.youzanyun.sdk.sample
 
+//import com.youzanyun.sdk.sample.config.KaeConfig.S_URL_MINE
 import android.app.AppOpsManager
 import android.app.Application
 import android.app.AsyncNotedAppOp
 import android.app.SyncNotedAppOp
-import android.content.Context
 import android.os.Build
+import android.os.Looper
 import android.util.Log
 import com.youzan.androidsdk.InitConfig
-import com.youzan.androidsdk.LogCallback
 import com.youzan.androidsdk.YouzanSDK
-import com.youzan.androidsdk.basic.YouzanSettings
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter
 import com.youzan.androidsdkx5.YouzanPreloader
 import com.youzanyun.sdk.sample.config.KaeConfig
-//import com.youzanyun.sdk.sample.config.KaeConfig.S_URL_MINE
 import com.youzanyun.sdk.sample.helper.LoginHelper
 import ren.yale.android.cachewebviewlib.WebViewCacheInterceptor
 import ren.yale.android.cachewebviewlib.WebViewCacheInterceptorInst
@@ -74,43 +72,25 @@ class MyApplication : Application() {
         YouzanSDK.isDebug(true)
         //TODO clientId 写入
         val config = InitConfig.builder()
-            .settings(
-                mutableMapOf(
-                    com.youzan.androidsdk.basic.YouzanSettings.SETTINGS_SUPPORT_ENABLE_IMEI to false
-                ).toMap()
-            )
+            .isSupportOffline(true)
             .clientId(KaeConfig.S_CLIENT_ID)
             .appkey("")
-            .adapter(object : YouZanSDKX5Adapter() {
-                override fun clearCookieByHost(p0: Context?, p1: String?) {
-                    super.clearCookieByHost(p0, p1)
+            .adapter(YouZanSDKX5Adapter())
+            .initCallBack { ready, message ->
+                // 预取html，一般是预取店铺主页的url。
+                // 注意：当发生重定向时，预取不生效。
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Looper.getMainLooper().queue.addIdleHandler {
+                        YouzanPreloader.preloadOfflineRes(this@MyApplication, KaeConfig.S_URL_MAIN);
+                        false
+                    }
                 }
-
-                override fun clearLocalStorage() {
-                    super.clearLocalStorage()
-                }
-
-                override fun getX5TbsSettings(): MutableMap<String, Any> {
-                    return super.getX5TbsSettings()
-                }
-
-                override fun onStartX5TbsInit() {
-                    super.onStartX5TbsInit()
-                }
-            })
-            .logCallback(object : LogCallback {
-                override fun onLog(eventType: String, message: String): Boolean {
-                    return false
-                }
-            })
-
+            }
             .build()
         YouzanSDK.init(this, config)
 
-        // 可选
-        // 预取html，一般是预取店铺主页的url。
-        // 注意：当发生重定向时，预取不生效。
-        YouzanPreloader.preloadHtml(this, KaeConfig.S_URL_MAIN);
+
+
         WebViewCacheInterceptorInst.getInstance().init(WebViewCacheInterceptor.Builder(this))
         LoginHelper.init(this)
     }
