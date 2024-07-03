@@ -59,7 +59,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     //basic版本
-    implementation("com.youzanyun.open.mobile:basic:7.13.1")
+    implementation("com.youzanyun.open.mobile:basic:7.14.0")
     implementation 'com.android.support:appcompat-v7:28.0.0'
 
     implementation "com.alibaba:fastjson:1.2.78"
