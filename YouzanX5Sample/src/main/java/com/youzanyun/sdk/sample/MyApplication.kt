@@ -72,25 +72,14 @@ class MyApplication : Application() {
         YouzanSDK.isDebug(true)
         //TODO clientId 写入
         val config = InitConfig.builder()
-            .isSupportOffline(true)
             .clientId(KaeConfig.S_CLIENT_ID)
             .appkey("")
             .adapter(YouZanSDKX5Adapter())
             .initCallBack { ready, message ->
-                // 预取html，一般是预取店铺主页的url。
-                // 注意：当发生重定向时，预取不生效。
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    Looper.getMainLooper().queue.addIdleHandler {
-                        YouzanPreloader.preloadOfflineRes(this@MyApplication, KaeConfig.S_URL_MAIN);
-                        false
-                    }
-                }
+
             }
             .build()
         YouzanSDK.init(this, config)
-
-
-
         WebViewCacheInterceptorInst.getInstance().init(WebViewCacheInterceptor.Builder(this))
         LoginHelper.init(this)
     }

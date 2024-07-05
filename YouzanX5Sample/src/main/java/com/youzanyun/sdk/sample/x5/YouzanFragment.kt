@@ -51,6 +51,7 @@ import com.youzan.androidsdkx5.compat.WebChromeClientConfig
 import com.youzan.spiderman.cache.SpiderMan
 import com.youzan.spiderman.html.HtmlHeader
 import com.youzan.spiderman.html.HtmlStatistic
+import com.youzan.x5web.WebViewClientWrapper
 import com.youzanyun.sdk.sample.config.KaeConfig
 import com.youzanyun.sdk.sample.helper.YouzanHelper
 import okhttp3.*
@@ -80,6 +81,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             return fg
         }
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         view.findViewById<View>(R.id.back).setOnClickListener {
@@ -120,13 +122,16 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 //                return  true
 //            }
 //        })
+
         //分享按钮
         mToolbar!!.setTitle(R.string.loading_page)
         mToolbar!!.inflateMenu(R.menu.menu_youzan_share)
         mToolbar!!.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_share -> {
-                    mView.sharePage()
+//                    mView.sharePage()
+                    mView.loadUrl("javascript:prompt('spiderman://callback?timing=')")
+
                     true
                 }
                 R.id.action_refresh -> {
@@ -199,45 +204,9 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                 }
                 return null
             }
-//
-//            override fun shouldInterceptRequest(webView: WebView?, s: String?): WebResourceResponse? {
-//                return WebResourceResponseAdapter.adapter(WebViewCacheInterceptorInst.getInstance().interceptRequest(s))
-//            }
-//            https://shop139935761.youzan.com/wscuser/membercenter?alias=Qn7FnnQwAB&reft=1715852464115&spm=f.131511492
-//             "https://shop139935761.youzan.com/wscuser/membercenter?alias=Qn7FnnQwAB&reft=1715852464115&spm=f.131511492"
-//             "https://shop139935761.youzan.com/wscuser/membercenter?alias=Qn7FnnQwAB&reft=1715852656259&spm=f.131511492"
+
             @TargetApi(21)
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                val url = request.url.toString()
-                if(url == KaeConfig.S_URL_MAIN ) {
-                    YouzanLog.addSDKLog( "1. 命中的intercept html:$url")
-                    val  res: WebResourceResponse? =  interceptHtmlRequest(view.context, url)
-                    if (res != null) {
-                        YouzanLog.addSDKLog( "2. intercept html:$url")
-                        return res
-                    } else {
-                        YouzanPreloader.preloadHtml(view.context, url);
-                    }
-                }
-
-//                return WebResourceResponseAdapter.adapter(WebViewCacheInterceptorInst.getInstance().
-//                interceptRequest(WebResourceRequestAdapter.adapter(request)));
-//
-//
-//                //                Logger.e(TAG, "intercept request, url:" + url);
-//                if (url == KaeConfig.S_URL_MAIN || url.endsWith(".js") || url.endsWith(".css")) { // html
-//                    YouzanLog.addSDKLog( "1. 命中的intercept html:$url")
-//                    // may call multi time with one html url, so the stream is cannot be used in two clients
-//                    val  res: WebResourceResponse? =  interceptHtmlRequest(view.context, url)
-//                    if (res != null) {
-//                        YouzanLog.addSDKLog( "2. intercept html:$url")
-//                        return res
-//                    } else {
-//                        YouzanPreloader.preloadHtml(view.context, url);
-//                    }
-//                    return super.shouldInterceptRequest(view, url)
-//                }
-
                 return super.shouldInterceptRequest(view, request)
             }
         })

@@ -17,15 +17,11 @@
 package com.youzanyun.sdk.sample.basic;
 
 import android.app.Application;
-import android.os.Build;
-import android.os.Looper;
-import android.os.MessageQueue;
 
 import com.youzan.androidsdk.InitCallBack;
 import com.youzan.androidsdk.InitConfig;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.basic.YouzanBasicSDKAdapter;
-import com.youzan.androidsdk.basic.YouzanPreloader;
 
 
 public class MyApplication extends Application {
@@ -38,20 +34,10 @@ public class MyApplication extends Application {
         YouzanSDK.isDebug(true);
         YouzanSDK.init(this, new InitConfig.Builder()
                 .clientId("0073bccbaf5369028a")
-                .isSupportOffline(false)
+                .appkey("xx")
                         .initCallBack(new InitCallBack() {
                             @Override
                             public void readyCallBack(boolean ready, String message) {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    Looper.getMainLooper().getQueue().addIdleHandler(new MessageQueue.IdleHandler() {
-                                        @Override
-                                        public boolean queueIdle() {
-                                            // 可选， 需要在主线程执行
-                                            YouzanPreloader.preloadOfflineRes(MyApplication.this, KaeConfig.URL_MAIN );
-                                            return false;
-                                        }
-                                    });
-                                }
                             }
                         })
                 .adapter(new YouzanBasicSDKAdapter())
