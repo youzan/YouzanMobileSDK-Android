@@ -16,7 +16,7 @@
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.4.0'
+    ext.kotlin_version = '1.6.0'
     repositories {
         maven {
             url 'https://maven.aliyun.com/repository/public/'
@@ -36,6 +36,9 @@ task clean(type: Delete) {
 
 allprojects {
     repositories {
+        maven {
+            url 'https://maven.aliyun.com/repository/public/'
+        }
         google()
         mavenCentral()
         maven { url 'http://maven.youzanyun.com/repository/maven-releases' }

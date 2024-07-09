@@ -18,7 +18,7 @@ import java.util.Map;
  */
 public class DefaultWebResponseGenerator implements WebResourceResponseGenerator {
 
-    private static final String KEY_CONTENT_TYPE = "Content-Type";
+    public static final String KEY_CONTENT_TYPE = "Content-Type";
 
     @Override
     public WebResourceResponse generate(WebResource resource, String urlMime) {

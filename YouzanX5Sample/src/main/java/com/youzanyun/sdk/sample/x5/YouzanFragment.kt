@@ -38,25 +38,23 @@ import com.tencent.smtt.export.external.interfaces.WebResourceResponse
 import com.tencent.smtt.sdk.WebSettings
 import com.tencent.smtt.sdk.WebView
 import com.tencent.smtt.sdk.WebViewClient
-import com.youzan.androidsdk.YouzanLog
 import com.youzan.androidsdk.event.*
 import com.youzan.androidsdk.model.goods.GoodsShareModel
 import com.youzan.androidsdk.model.refresh.RefreshChangeModel
 import com.youzan.androidsdk.model.trade.TradePayFinishedModel
 import com.youzan.androidsdkx5.YouzanBrowser
-import com.youzan.androidsdkx5.YouzanPreloader
 import com.youzan.androidsdkx5.compat.CompatWebChromeClient
 import com.youzan.androidsdkx5.compat.VideoCallback
 import com.youzan.androidsdkx5.compat.WebChromeClientConfig
 import com.youzan.spiderman.cache.SpiderMan
 import com.youzan.spiderman.html.HtmlHeader
 import com.youzan.spiderman.html.HtmlStatistic
-import com.youzan.x5web.WebViewClientWrapper
-import com.youzanyun.sdk.sample.config.KaeConfig
 import com.youzanyun.sdk.sample.helper.YouzanHelper
+import kotlinx.android.synthetic.main.activity_splash.*
 import okhttp3.*
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.IOException
 import java.io.InputStream
 import java.util.*
 
@@ -207,7 +205,34 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 
             @TargetApi(21)
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                return super.shouldInterceptRequest(view, request)
+                val res = super.shouldInterceptRequest(view, request)
+
+                if (res == null && request != null && request.url.toString().contains("init.json")) {
+
+                    return try {
+                        // 构造 OkHttp 请求
+                        val okhttpRequest: Request = Request.Builder()
+                            .url(request.url.toString())
+                            .build()
+
+                        // 发送 OkHttp 请求
+                        val okhttpResponse = client.newCall(okhttpRequest).execute()
+                        // 获取响应数据
+                        val body = okhttpResponse.body()
+                        val mimeType = okhttpResponse.header("Content-Type")
+                        val encoding = if (body != null) body.contentType()!!.charset()!!.name() else "UTF-8"
+                        val inputStream = body?.byteStream()
+
+                        // 构造 WebResourceResponse
+                        val response = WebResourceResponse(mimeType, encoding, inputStream)
+                        response.responseHeaders = Collections.singletonMap("Access-Control-Allow-Origin", "*.youzan.com");
+                        null
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        null
+                    }
+                }
+                return res;
             }
         })
     }
