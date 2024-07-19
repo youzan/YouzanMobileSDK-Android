@@ -70,7 +70,7 @@ public abstract class WebViewFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        mWebView.onPause();
+//        mWebView.onPause();
     }
 
     /**

@@ -207,31 +207,31 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                 val res = super.shouldInterceptRequest(view, request)
 
-                if (res == null && request != null && request.url.toString().contains("init.json")) {
-
-                    return try {
-                        // 构造 OkHttp 请求
-                        val okhttpRequest: Request = Request.Builder()
-                            .url(request.url.toString())
-                            .build()
-
-                        // 发送 OkHttp 请求
-                        val okhttpResponse = client.newCall(okhttpRequest).execute()
-                        // 获取响应数据
-                        val body = okhttpResponse.body()
-                        val mimeType = okhttpResponse.header("Content-Type")
-                        val encoding = if (body != null) body.contentType()!!.charset()!!.name() else "UTF-8"
-                        val inputStream = body?.byteStream()
-
-                        // 构造 WebResourceResponse
-                        val response = WebResourceResponse(mimeType, encoding, inputStream)
-                        response.responseHeaders = Collections.singletonMap("Access-Control-Allow-Origin", "*.youzan.com");
-                        null
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                        null
-                    }
-                }
+//                if (res == null && request != null && request.url.toString().contains("init.json")) {
+//
+//                    return try {
+//                        // 构造 OkHttp 请求
+//                        val okhttpRequest: Request = Request.Builder()
+//                            .url(request.url.toString())
+//                            .build()
+//
+//                        // 发送 OkHttp 请求
+//                        val okhttpResponse = client.newCall(okhttpRequest).execute()
+//                        // 获取响应数据
+//                        val body = okhttpResponse.body()
+//                        val mimeType = okhttpResponse.header("Content-Type")
+//                        val encoding = if (body != null) body.contentType()!!.charset()!!.name() else "UTF-8"
+//                        val inputStream = body?.byteStream()
+//
+//                        // 构造 WebResourceResponse
+//                        val response = WebResourceResponse(mimeType, encoding, inputStream)
+//                        response.responseHeaders = Collections.singletonMap("Access-Control-Allow-Origin", "*.youzan.com");
+//                        null
+//                    } catch (e: IOException) {
+//                        e.printStackTrace()
+//                        null
+//                    }
+//                }
                 return res;
             }
         })
@@ -326,6 +326,10 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         mView!!.subscribe(object : AbsPaymentFinishedEvent() {
             override fun call(context: Context, tradePayFinishedModel: TradePayFinishedModel) {}
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 
     override fun getWebViewId(): Int {

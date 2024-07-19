@@ -24,6 +24,7 @@ import android.os.Build
 import android.os.Looper
 import android.util.Log
 import com.youzan.androidsdk.InitConfig
+import com.youzan.androidsdk.LogCallback
 import com.youzan.androidsdk.YouzanSDK
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter
 import com.youzan.androidsdkx5.YouzanPreloader
@@ -78,6 +79,11 @@ class MyApplication : Application() {
             .initCallBack { ready, message ->
 
             }
+            .logCallback(object : LogCallback {
+                override fun onLog(eventType: String, message: String) {
+
+                }
+            })
             .build()
         YouzanSDK.init(this, config)
         WebViewCacheInterceptorInst.getInstance().init(WebViewCacheInterceptor.Builder(this))
