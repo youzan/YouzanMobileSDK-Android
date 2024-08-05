@@ -34,7 +34,7 @@ public class MyApplication extends Application {
         YouzanSDK.isDebug(true);
         YouzanSDK.init(this, new InitConfig.Builder()
                 .clientId("0073bccbaf5369028a")
-                .appkey("xx")
+                .appkey("")
                         .initCallBack(new InitCallBack() {
                             @Override
                             public void readyCallBack(boolean ready, String message) {

@@ -71,7 +71,6 @@ class MyApplication : Application() {
         // 初始化SDK
         //appkey:可以前往<a href="http://open.youzan.com/sdk/access">有赞开放平台</a>申请
         YouzanSDK.isDebug(true)
-        //TODO clientId 写入
         val config = InitConfig.builder()
             .clientId(KaeConfig.S_CLIENT_ID)
             .appkey("")
