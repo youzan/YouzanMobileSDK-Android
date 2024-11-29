@@ -10,7 +10,8 @@ object KaeConfig {
     const val S_CLIENT_ID = "0073bccbaf5369028a"
 //    const val S_URL_MAIN = "https://shop156571076.m.youzan.com/wscshop/showcase/homepage?kdt_id=156378908"
 //    const val S_URL_MAIN = "https://shop139935761.m.youzan.com/wscshop/showcase/homepage?kdt_id=139743593"
-    const val S_URL_MAIN = "https://shop143703561.youzan.com/v2/showcase/homepage?alias=b0hB2PIg6s&dc_ps=3626055956015745029.300001"
+//    const val S_URL_MAIN = "https://shop143703561.youzan.com/v2/showcase/homepage?alias=b0hB2PIg6s&dc_ps=3626055956015745029.300001"
+    const val S_URL_MAIN = "https://shop141337475.m.youzan.com/wscshop/showcase/homepage?kdt_id=141145307"
 
 
 //     const val S_URL_MAIN = "https://shop122003905.m.youzan.com/v2/showcase/homepage?alias=I7OEE6dEc2&showRetailComps=1"

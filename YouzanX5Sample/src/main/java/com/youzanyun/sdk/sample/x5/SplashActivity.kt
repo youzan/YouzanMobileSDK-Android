@@ -26,8 +26,7 @@ class SplashActivity : AppCompatActivity() {
 
 
         findViewById<View>(R.id.logout).setOnClickListener {
-//          YouzanSDK.userLogout(this@SplashActivity)
-            YouzanPreloader.preloadHtml(this@SplashActivity.application, KaeConfig.S_URL_MAIN)
+          YouzanSDK.userLogout(this@SplashActivity)
         }
 
     }

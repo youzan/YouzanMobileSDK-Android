@@ -85,7 +85,7 @@ class MyApplication : Application() {
             })
             .build()
         YouzanSDK.init(this, config)
-        WebViewCacheInterceptorInst.getInstance().init(WebViewCacheInterceptor.Builder(this))
+        YouzanPreloader.preloadHtml(this, KaeConfig.S_URL_MAIN)
         LoginHelper.init(this)
     }
 }

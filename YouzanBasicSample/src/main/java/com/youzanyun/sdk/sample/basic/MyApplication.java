@@ -22,6 +22,7 @@ import com.youzan.androidsdk.InitCallBack;
 import com.youzan.androidsdk.InitConfig;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.basic.YouzanBasicSDKAdapter;
+import com.youzan.androidsdk.basic.YouzanPreloader;
 
 
 public class MyApplication extends Application {
@@ -44,8 +45,6 @@ public class MyApplication extends Application {
                 .build()
         );
 
-
-
-
+        YouzanPreloader.preloadHtml(this, KaeConfig.URL_MAIN);
     }
 }
