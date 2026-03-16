@@ -17,8 +17,8 @@
 package com.youzanyun.sdk.sample.basic;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 
 public class YouzanActivity extends AppCompatActivity {

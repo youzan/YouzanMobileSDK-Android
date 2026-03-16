@@ -2,7 +2,7 @@ package com.youzanyun.sdk.sample.x5
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import com.youzan.androidsdk.YouzanSDK
 import com.youzan.androidsdk.YouzanToken
@@ -19,12 +19,14 @@ class LoginActivity : AppCompatActivity() {
         findViewById<View>(R.id.login_tv).setOnClickListener {
 
             YouzanHelper.loginYouzan(this@LoginActivity) {
-                LoginHelper.setLogin(false)
-                Intent(this@LoginActivity, MainActivity::class.java).apply {
-                    this.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    startActivity(this)
-                    this@LoginActivity.finish()
-                }
+                LoginHelper.setLogin(true)
+                setResult(RESULT_OK)
+                finish()
+//                Intent(this@LoginActivity, MainActivity::class.java).apply {
+//                    this.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//                    startActivity(this)
+//                    this@LoginActivity.finish()
+//                }
             }
         }
     }

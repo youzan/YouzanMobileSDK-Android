@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2017 youzanyun.com, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,78 +15,43 @@
  */
 package com.youzanyun.sdk.sample.x5
 
-import android.content.Context
 import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.ConnectivityManager.TYPE_WIFI
-import android.net.wifi.WifiManager
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
-import android.support.v4.app.FragmentPagerAdapter
-import android.support.v4.view.ViewPager
 import android.view.View
-import com.ashokvarma.bottomnavigation.BottomNavigationBar
-import com.ashokvarma.bottomnavigation.BottomNavigationBar.MODE_FIXED
-import com.ashokvarma.bottomnavigation.BottomNavigationBar.OnTabSelectedListener
-import com.ashokvarma.bottomnavigation.BottomNavigationItem
 import com.youzanyun.sdk.sample.config.KaeConfig
 
 
-class MainActivity : FragmentActivity(), View.OnClickListener {
-    private lateinit var mBottomNavigator: BottomNavigationBar
-    private lateinit var mViewPager: ViewPager
-    private val fgLists = mutableListOf<Fragment>()
+class MainActivity : androidx.fragment.app.FragmentActivity(), View.OnClickListener {
+    private lateinit var mViewPager: androidx.viewpager.widget.ViewPager
+    private val fgLists = mutableListOf<androidx.fragment.app.Fragment>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        mBottomNavigator = findViewById(R.id.bottom_navigator)
-        mBottomNavigator.addItem(BottomNavigationItem(R.drawable.ic_launcher, "主页"))
-            .addItem(BottomNavigationItem(R.drawable.ic_launcher, "退出入口"))
-            .setMode(MODE_FIXED)
-            .initialise()
-        mBottomNavigator.setBackgroundResource(R.color.x5_grey)
-
-        mBottomNavigator.setTabSelectedListener(object : OnTabSelectedListener {
-            override fun onTabSelected(position: Int) {
-                mViewPager.setCurrentItem(position, true)
-            }
-
-            override fun onTabUnselected(position: Int) {
-
-            }
-
-            override fun onTabReselected(position: Int) {
-
-            }
-        })
-
 
         mViewPager = findViewById(R.id.vp)
-        mViewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+        mViewPager.addOnPageChangeListener(object : androidx.viewpager.widget.ViewPager.OnPageChangeListener {
             override fun onPageScrolled(p0: Int, p1: Float, p2: Int) {
             }
 
             override fun onPageSelected(p0: Int) {
-                mBottomNavigator.selectTab(p0, false)
             }
 
             override fun onPageScrollStateChanged(p0: Int) {
             }
 
         })
-        mViewPager.offscreenPageLimit = 3
+        mViewPager.offscreenPageLimit = 2
         val fg0 = YouzanFragment.newInstance(intent.getStringExtra("url") ?: KaeConfig.S_URL_MAIN)
         val fg3 = LogoutFragment()
 
         fgLists.add(fg0)
         fgLists.add(fg3)
-        mViewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager) {
+        mViewPager.adapter = object : androidx.fragment.app.FragmentPagerAdapter(supportFragmentManager) {
             override fun getCount(): Int {
                 return 2
             }
 
-            override fun getItem(p0: Int): Fragment {
+            override fun getItem(p0: Int): androidx.fragment.app.Fragment {
                 return when (p0) {
                     0 -> fg0
                     3 -> fg3
@@ -133,23 +98,7 @@ class MainActivity : FragmentActivity(), View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
-        getWifiSSID(this@MainActivity)
     }
-
-    fun getWifiSSID(context: Context): String? {
-        var bssid = ""
-        val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            ?: return bssid
-        val activeNetworkInfo = manager.activeNetworkInfo
-        if (activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting && activeNetworkInfo.type == TYPE_WIFI) {
-            val wifiManager = context.getApplicationContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
-                ?: return bssid
-            val connectionInfo = wifiManager.connectionInfo
-            bssid = connectionInfo.bssid
-        }
-        return bssid
-    }
-
 }
 
 

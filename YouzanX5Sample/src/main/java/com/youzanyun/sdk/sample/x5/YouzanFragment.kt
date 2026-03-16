@@ -15,6 +15,7 @@
  */
 package com.youzanyun.sdk.sample.x5
 
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.Activity
 import android.content.ActivityNotFoundException
@@ -24,14 +25,16 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.support.annotation.RequiresApi
-import android.support.v4.app.Fragment
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
-import android.support.v7.widget.Toolbar
+import androidx.annotation.RequiresApi
+import androidx.fragment.app.Fragment
+import androidx.appcompat.widget.Toolbar
 import android.util.Log
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.view.View
 import android.widget.Toast
+import com.tencent.smtt.export.external.interfaces.GeolocationPermissionsCallback
 import com.tencent.smtt.export.external.interfaces.WebResourceError
 import com.tencent.smtt.export.external.interfaces.WebResourceRequest
 import com.tencent.smtt.export.external.interfaces.WebResourceResponse
@@ -39,6 +42,7 @@ import com.tencent.smtt.sdk.WebSettings
 import com.tencent.smtt.sdk.WebView
 import com.tencent.smtt.sdk.WebViewClient
 import com.youzan.androidsdk.event.*
+import com.youzan.androidsdk.model.goods.GoodsOfCartModel
 import com.youzan.androidsdk.model.goods.GoodsShareModel
 import com.youzan.androidsdk.model.refresh.RefreshChangeModel
 import com.youzan.androidsdk.model.trade.TradePayFinishedModel
@@ -46,32 +50,26 @@ import com.youzan.androidsdkx5.YouzanBrowser
 import com.youzan.androidsdkx5.compat.CompatWebChromeClient
 import com.youzan.androidsdkx5.compat.VideoCallback
 import com.youzan.androidsdkx5.compat.WebChromeClientConfig
-import com.youzan.spiderman.cache.SpiderMan
-import com.youzan.spiderman.html.HtmlHeader
-import com.youzan.spiderman.html.HtmlStatistic
-import com.youzanyun.sdk.sample.helper.YouzanHelper
-import kotlinx.android.synthetic.main.activity_splash.*
 import okhttp3.*
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.IOException
 import java.io.InputStream
-import java.util.*
 
 
 /**
  * 这里使用[WebViewFragment]对[WebView]生命周期有更好的管控.
  */
-class YouzanFragment : WebViewFragment(), OnRefreshListener {
+class YouzanFragment : WebViewFragment() {
     private val client: OkHttpClient = OkHttpClient()
     private lateinit var mView: YouzanBrowser
-    private val mRefreshLayout: SwipeRefreshLayout? = null
     private var mToolbar: Toolbar? = null
+    private var mGeolocationCallback: GeolocationPermissionsCallback? = null
+    private var mGeolocationOrigin: String? = null
 
     companion object {
         private const val CODE_REQUEST_LOGIN = 0x1000
 
-        fun newInstance(url: String): Fragment {
+        fun newInstance(url: String): androidx.fragment.app.Fragment {
             val fg = YouzanFragment()
             fg.arguments = Bundle().apply {
                 putString(YouzanActivity.KEY_URL, url)
@@ -90,7 +88,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         val settings = webView.settings
         settings.cacheMode = WebSettings.LOAD_NO_CACHE
 
-        val url : String? = arguments!!.getString(YouzanActivity.KEY_URL)
+        val url : String? = arguments?.getString(YouzanActivity.KEY_URL)
         if (url != null) {
             mView.loadUrl(url)
         }
@@ -99,6 +97,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         //加载H5时，开启默认loading
         //设置自定义loading图片
 //        mView.setLoadingImage(R.mipmap.ic_launcher);
+//        setLoadingImage()
     }
 
     private fun setupViews(contentView: View) {
@@ -109,7 +108,6 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             data.putBoolean("standardFullScreen", true) // true表示标准全屏，false表示X5全屏；不设置默认false，
             data.putBoolean("supportLiteWnd", true) // false：关闭小窗；true：开启小窗；不设置默认true，
             data.putInt("DefaultVideoScreen", 2) // 1：以页面内开始播放，2：以全屏开始播放；不设置默认：1
-            mView.getX5WebViewExtension().invokeMiscMethod("setVideoParams", data)
         }
         mToolbar = contentView.findViewById<View>(R.id.toolbar) as Toolbar
         //        mRefreshLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe);
@@ -127,9 +125,8 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         mToolbar!!.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_share -> {
-//                    mView.sharePage()
+                    mView.sharePage()
                     mView.loadUrl("javascript:prompt('spiderman://callback?timing=')")
-
                     true
                 }
                 R.id.action_refresh -> {
@@ -140,35 +137,40 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             }
         }
 
-        //刷新
-//        mRefreshLayout.setOnRefreshListener(this);
-//        mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.RED);
-//        mRefreshLayout.setEnabled(false);
-//        mView.setWebChromeClient(object : WebChromeClient() {
-//            override fun onShowCustomView(view: View, customViewCallback: IX5WebChromeClient.CustomViewCallback) {
-//                super.onShowCustomView(view, customViewCallback)
-//                customViewCallback.onCustomViewHidden() // 避免视频未播放时，点击全屏白屏的问题
-//            }
-//
-//
-//        })
-
         mView.setWebChromeClient(object: CompatWebChromeClient(
             WebChromeClientConfig(
                 true, object : VideoCallback {
+
                     override fun onVideoCallback(b: Boolean) {
                         Toast.makeText(activity, "" + b, Toast.LENGTH_SHORT).show()
                     }
                 }
             )
         ) {
+
+            override fun getContentView(view: View): View? {
+                return super.getContentView(view)
+            }
+
             override fun onReceivedTitle(p0: WebView?, p1: String?) {
                 super.onReceivedTitle(p0, p1)
                 mToolbar?.title = p1
             }
+
+            override fun onGeolocationPermissionsShowPrompt(p0: String?, p1: GeolocationPermissionsCallback?) {
+                if (ContextCompat.checkSelfPermission(activity!!, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    mGeolocationCallback = p1
+                    mGeolocationOrigin = p0
+                    requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 1001)
+                } else {
+                    p1?.invoke(p0, true, false)
+                }
+            }
         })
 
         mView.setWebViewClient(object : WebViewClient() {
+
+
 
             override fun onReceivedError(p0: WebView?, p1: WebResourceRequest?, p2: WebResourceError?) {
                 super.onReceivedError(p0, p1, p2)
@@ -179,7 +181,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             }
             override fun onPageFinished(p0: WebView?, p1: String?) {
                 super.onPageFinished(p0, p1)
-                Log.d("lsd", "onPageFinished")
+                Log.d("lsd", "onPageFinished ${p1}, ${p0?.copyBackForwardList()?.size}" )
             }
 
             override fun onPageStarted(p0: WebView?, p1: String?, p2: Bitmap?) {
@@ -187,81 +189,43 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                 Log.d("lsd", "onPageStarted")
                 Toast.makeText(activity, "onPageStarted", Toast.LENGTH_SHORT).show()
             }
-
-            private fun interceptHtmlRequest(context: Context, url: String): WebResourceResponse? {
-                val statistic = HtmlStatistic(url)
-                val htmlResponse = SpiderMan.getInstance().interceptHtml(context, url, statistic)
-                if (htmlResponse != null) {
-                    val webResourceResponse = WebResourceResponse(
-                        "text/html", htmlResponse.encoding, htmlResponse.contentStream
-                    )
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        webResourceResponse.responseHeaders = HtmlHeader.transferHeaderMapList(htmlResponse.header) // add response header
-                    }
-                    return webResourceResponse
-                }
-                return null
-            }
-
-            @TargetApi(21)
-            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                val res = super.shouldInterceptRequest(view, request)
-
-//                if (res == null && request != null && request.url.toString().contains("init.json")) {
-//
-//                    return try {
-//                        // 构造 OkHttp 请求
-//                        val okhttpRequest: Request = Request.Builder()
-//                            .url(request.url.toString())
-//                            .build()
-//
-//                        // 发送 OkHttp 请求
-//                        val okhttpResponse = client.newCall(okhttpRequest).execute()
-//                        // 获取响应数据
-//                        val body = okhttpResponse.body()
-//                        val mimeType = okhttpResponse.header("Content-Type")
-//                        val encoding = if (body != null) body.contentType()!!.charset()!!.name() else "UTF-8"
-//                        val inputStream = body?.byteStream()
-//
-//                        // 构造 WebResourceResponse
-//                        val response = WebResourceResponse(mimeType, encoding, inputStream)
-//                        response.responseHeaders = Collections.singletonMap("Access-Control-Allow-Origin", "*.youzan.com");
-//                        null
-//                    } catch (e: IOException) {
-//                        e.printStackTrace()
-//                        null
-//                    }
-//                }
-                return res;
-            }
         })
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1001) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                mGeolocationCallback?.invoke(mGeolocationOrigin, true, false)
+            } else {
+                mGeolocationCallback?.invoke(mGeolocationOrigin, false, false)
+            }
+            mGeolocationCallback = null
+            mGeolocationOrigin = null
+        }
+    }
+
+    var  i = 0
     private fun setupYouzan() {
 
-        mView!!.subscribe(object : AbsCheckAuthMobileEvent() {})
+        mView!!.subscribe(object : AbsCheckAuthMobileEvent() {
+
+        })
         //认证事件, 回调表示: 需要需要新的认证信息传入
         mView!!.subscribe(object : AbsAuthEvent() {
             override fun call(context: Context, needLogin: Boolean) {
-                /**
-                 * 建议实现逻辑:
-                 *
-                 * 判断App内的用户是否登录?
-                 * => 已登录: 请求带用户角色的认证信息(login接口);
-                 * => 未登录: needLogin为true, 唤起App内登录界面, 请求带用户角色的认证信息(login接口);
-                 * => 未登录: needLogin为false, 请求不带用户角色的认证信息(initToken接口).
-                 *
-                 * 服务端接入文档: https://www.youzanyun.com/docs/guide/appsdk/683
-                 */
-                //TODO 自行编码实现. 具体可参考开发文档中的伪代码实现
-                //TODO 手机号自己填入
-                YouzanHelper.loginYouzan(activity!!, {
-                    mView.postDelayed({
-                        mView.reload()
-                    }, 500)
 
-                })
+//                YouzanHelper.loginYouzan(activity!!, {
+//                    mView.postDelayed({
+//                        mView.reload()
+//                    }, 500)
+//
+//                })
+                val clz = LoginActivity::class.java
+                val intent = Intent(activity, clz)
+                startActivityForResult(intent, CODE_REQUEST_LOGIN)
 
+                Toast.makeText(activity, "模拟登录失败一次", Toast.LENGTH_SHORT).show()
             }
         })
         mView!!.subscribe(object : AbsCheckAuthMobileEvent() {})
@@ -307,7 +271,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             }
         })
         //分享事件, 回调表示: 获取到当前页面的分享信息数据
-        mView!!.subscribe(object : AbsShareEvent() {
+        mView.subscribe(object : AbsShareEvent() {
             override fun call(context: Context, data: GoodsShareModel) {
                 /**
                  * 在获取数据后, 可以使用其他分享SDK来提高分享体验.
@@ -326,6 +290,14 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         mView!!.subscribe(object : AbsPaymentFinishedEvent() {
             override fun call(context: Context, tradePayFinishedModel: TradePayFinishedModel) {}
         })
+
+        mView!!.subscribe(object: AbsAddToCartEvent() {
+            override fun call(context: Context?, data: GoodsOfCartModel?) {
+                Toast.makeText(context, "xxx", Toast.LENGTH_SHORT).show()
+            }
+
+        })
+
     }
 
     override fun onResume() {
@@ -348,16 +320,12 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         return mView.pageGoBack();
     }
 
-    override fun onRefresh() {
-        //重新加载页面
-        mView!!.reload()
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (CODE_REQUEST_LOGIN == requestCode) { // 如果是登录事件返回
             if (resultCode == Activity.RESULT_OK) {
                 // 登录成功设置token
+                mView.reload()
             } else {
                 // 登录失败
                 mView!!.syncNot()
@@ -370,31 +338,30 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
     }
 }
 
+@SuppressLint("NewApi")
 class WebResourceResponseAdapter private constructor(private val mWebResourceResponse: android.webkit.WebResourceResponse) : WebResourceResponse() {
-    override fun getMimeType(): String {
+    override fun getMimeType(): String? {
         return mWebResourceResponse.mimeType
     }
 
-    override fun getData(): InputStream {
+    override fun getData(): InputStream? {
         return mWebResourceResponse.data
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     override fun getStatusCode(): Int {
         return mWebResourceResponse.statusCode
     }
-
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    override fun getResponseHeaders(): Map<String, String> {
+    override fun getResponseHeaders(): Map<String, String>? {
         return mWebResourceResponse.responseHeaders
     }
 
-    override fun getEncoding(): String {
+    override fun getEncoding(): String? {
         return mWebResourceResponse.encoding
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    override fun getReasonPhrase(): String {
+    override fun getReasonPhrase(): String? {
         return mWebResourceResponse.reasonPhrase
     }
 

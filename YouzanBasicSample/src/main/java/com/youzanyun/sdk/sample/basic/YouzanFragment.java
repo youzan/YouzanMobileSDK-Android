@@ -25,19 +25,18 @@ import android.content.Intent;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.appcompat.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.GeolocationPermissions;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.youzan.androidsdk.YouzanLog;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.YouzanToken;
 import com.youzan.androidsdk.YzLoginCallback;
@@ -114,6 +113,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 handler.proceed();
             }
 
+
             @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void onPageFinished(WebView view, String url) {
@@ -130,12 +130,19 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                     }
 
 
+
+
                 }
                 )
         ) {
             @Override
             public void onReceivedTitle(WebView view, String title) {
                 super.onReceivedTitle(view, title);
+            }
+
+            @Override
+            public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                super.onGeolocationPermissionsShowPrompt(origin, callback);
             }
         });
 
@@ -172,9 +179,11 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                     }
 
                     @Override
-                    public void onFail(String s) {
+                    public void onFail(String message, int code) {
 
                     }
+
+
                 });
             }
         });
