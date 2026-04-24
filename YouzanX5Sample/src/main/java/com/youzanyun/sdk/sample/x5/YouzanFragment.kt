@@ -17,21 +17,25 @@ package com.youzanyun.sdk.sample.x5
 
 import android.annotation.TargetApi
 import android.app.Activity
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.annotation.RequiresApi
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import com.tencent.smtt.export.external.interfaces.GeolocationPermissionsCallback
 import com.tencent.smtt.export.external.interfaces.WebResourceError
 import com.tencent.smtt.export.external.interfaces.WebResourceRequest
 import com.tencent.smtt.export.external.interfaces.WebResourceResponse
@@ -67,9 +71,12 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
     private lateinit var mView: YouzanBrowser
     private val mRefreshLayout: SwipeRefreshLayout? = null
     private var mToolbar: Toolbar? = null
+    private var geolocationCallback: GeolocationPermissionsCallback? = null
+    private var geolocationOrigin: String? = null
 
     companion object {
         private const val CODE_REQUEST_LOGIN = 0x1000
+        private const val CODE_REQUEST_GEOLOCATION = 0x1001
 
         fun newInstance(url: String): Fragment {
             val fg = YouzanFragment()
@@ -89,6 +96,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         setupYouzan()
         val settings = webView.settings
         settings.cacheMode = WebSettings.LOAD_NO_CACHE
+        settings.setGeolocationEnabled(true)
 
         val url : String? = arguments!!.getString(YouzanActivity.KEY_URL)
         if (url != null) {
@@ -165,6 +173,22 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             override fun onReceivedTitle(p0: WebView?, p1: String?) {
                 super.onReceivedTitle(p0, p1)
                 mToolbar?.title = p1
+            }
+
+            override fun onGeolocationPermissionsShowPrompt(
+                origin: String?,
+                callback: GeolocationPermissionsCallback?
+            ) {
+                if (origin == null || callback == null) {
+                    return
+                }
+                if (hasLocationPermission()) {
+                    callback.invoke(origin, true, false)
+                    return
+                }
+                geolocationOrigin = origin
+                geolocationCallback = callback
+                requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), CODE_REQUEST_GEOLOCATION)
             }
         })
 
@@ -368,6 +392,23 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 
         }
     }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != CODE_REQUEST_GEOLOCATION) {
+            return
+        }
+        val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+        geolocationCallback?.invoke(geolocationOrigin, granted, false)
+        geolocationCallback = null
+        geolocationOrigin = null
+    }
+
+    private fun hasLocationPermission(): Boolean {
+        val context = context ?: return false
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
 }
 
 class WebResourceResponseAdapter private constructor(private val mWebResourceResponse: android.webkit.WebResourceResponse) : WebResourceResponse() {
@@ -438,5 +479,4 @@ class WebResourceRequestAdapter private constructor(private val mWebResourceRequ
         }
     }
 }
-
 

@@ -25,7 +25,8 @@ object YouzanHelper {
                     callback.invoke(youzanToken)
                 }
 
-                override fun onFail(s: String) {}
+                override fun onFail(message: String?, code: Int) {
+                }
             })
     }
 }
