@@ -19,13 +19,15 @@ object YouzanHelper {
             "",
             "一百亿养乐多",
             "0",
-            object : YzLoginCallback {
+            "",
+            object : YzLoginCallback{
                 override fun onSuccess(youzanToken: YouzanToken) {
                     YouzanSDK.sync(context, youzanToken)
                     callback.invoke(youzanToken)
                 }
 
-                override fun onFail(s: String) {}
+                override fun onFail(p0: String, p1: Int) {
+                }
             })
     }
 }
