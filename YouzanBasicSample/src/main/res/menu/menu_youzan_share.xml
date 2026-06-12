@@ -24,4 +24,16 @@
         android:title="@string/share"
         app:showAsAction="always"/>
 
+    <item
+        android:id="@+id/action_refresh"
+        android:icon="@android:drawable/ic_menu_rotate"
+        android:title="刷新"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_print_timing"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="打印耗时"
+        app:showAsAction="always"/>
+
 </menu>

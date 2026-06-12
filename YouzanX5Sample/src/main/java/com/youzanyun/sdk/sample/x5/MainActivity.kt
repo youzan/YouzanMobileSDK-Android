@@ -25,7 +25,6 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
 import android.support.v4.app.FragmentPagerAdapter
 import android.support.v4.view.ViewPager
-import android.view.View
 import com.ashokvarma.bottomnavigation.BottomNavigationBar
 import com.ashokvarma.bottomnavigation.BottomNavigationBar.MODE_FIXED
 import com.ashokvarma.bottomnavigation.BottomNavigationBar.OnTabSelectedListener
@@ -33,7 +32,7 @@ import com.ashokvarma.bottomnavigation.BottomNavigationItem
 import com.youzanyun.sdk.sample.config.KaeConfig
 
 
-class MainActivity : FragmentActivity(), View.OnClickListener {
+class MainActivity : FragmentActivity() {
     private lateinit var mBottomNavigator: BottomNavigationBar
     private lateinit var mViewPager: ViewPager
     private val fgLists = mutableListOf<Fragment>()
@@ -115,12 +114,8 @@ class MainActivity : FragmentActivity(), View.OnClickListener {
 
     private fun gotoActivity(url: String) {
         val intent = Intent(this, YouzanActivity::class.java)
-        intent.putExtra(YouzanActivity.KEY_URL, url)
+        // intent.putExtra(YouzanActivity.KEY_URL, KaeConfig.S_URL_MAIN)
         startActivity(intent)
-    }
-
-    override fun onClick(v: View?) {
-
     }
 
     override fun onBackPressed() {
@@ -149,7 +144,4 @@ class MainActivity : FragmentActivity(), View.OnClickListener {
         }
         return bssid
     }
-
 }
-
-

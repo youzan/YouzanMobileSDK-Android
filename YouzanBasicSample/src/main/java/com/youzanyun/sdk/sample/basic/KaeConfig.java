@@ -6,6 +6,6 @@ package com.youzanyun.sdk.sample.basic;
  * desc:
  */
 public class KaeConfig {
-    public static String URL_MAIN = "商家 url";
+    public static String URL_MAIN = "https://shop92396879.m.youzan.com/v2/showcase/homepage?alias=xR6aSOPPhM";
 
 }

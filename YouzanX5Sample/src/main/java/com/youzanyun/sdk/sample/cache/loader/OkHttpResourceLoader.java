@@ -8,6 +8,7 @@ import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
 import android.content.Context;
 import android.text.TextUtils;
 
+import com.youzanyun.sdk.sample.cache.OfflineCacheLogger;
 import com.youzanyun.sdk.sample.cache.WebResource;
 import com.youzanyun.sdk.sample.cache.okhttp.OkHttpClientProvider;
 import com.youzan.androidsdk.utils.HeaderUtils;
@@ -89,15 +90,19 @@ public class OkHttpResourceLoader implements ResourceLoader {
             WebResource remoteResource = new WebResource();
             response = client.newCall(request).execute();
             if (isInterceptorThisRequest(response)) {
+                sourceRequest.setResolvedSource(WebResource.SOURCE_NETWORK);
                 remoteResource.setResponseCode(response.code());
                 remoteResource.setReasonPhrase(response.message());
                 remoteResource.setModified(response.code() != HTTP_NOT_MODIFIED);
+                remoteResource.setSource(WebResource.SOURCE_NETWORK);
+                remoteResource.setSourceDetail(WebResource.SOURCE_NETWORK);
                 ResponseBody responseBody = response.body();
                 if (responseBody != null) {
                     remoteResource.setOriginBytes(responseBody.bytes());
                 }
                 remoteResource.setResponseHeaders(HeaderUtils.generateHeadersMap(response.headers()));
                 remoteResource.setCacheByOurselves(!isCacheByOkHttp);
+                OfflineCacheLogger.log("资源来源", "本次走网络，类型=remote，url=" + url);
                 return remoteResource;
             }
         } catch (IOException e) {

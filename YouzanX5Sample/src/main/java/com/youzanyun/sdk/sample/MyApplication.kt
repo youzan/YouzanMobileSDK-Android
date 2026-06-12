@@ -21,19 +21,23 @@ import android.app.Application
 import android.app.AsyncNotedAppOp
 import android.app.SyncNotedAppOp
 import android.os.Build
-import android.os.Looper
 import android.util.Log
 import com.youzan.androidsdk.InitConfig
 import com.youzan.androidsdk.LogCallback
 import com.youzan.androidsdk.YouzanSDK
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter
-import com.youzan.androidsdkx5.YouzanPreloader
+import com.youzanyun.sdk.sample.cache.OfflineCacheLogger
 import com.youzanyun.sdk.sample.config.KaeConfig
 import com.youzanyun.sdk.sample.helper.LoginHelper
-import ren.yale.android.cachewebviewlib.WebViewCacheInterceptor
-import ren.yale.android.cachewebviewlib.WebViewCacheInterceptorInst
 
 class MyApplication : Application() {
+    companion object {
+        @JvmField
+        val HTML_CACHE_URLS = listOf(
+            "https://shop92396879.m.youzan.com/v2/showcase/homepage?alias=xR6aSOPPhM"
+        )
+    }
+
     override fun onCreate() {
         super.onCreate()
 
@@ -85,7 +89,28 @@ class MyApplication : Application() {
             })
             .build()
         YouzanSDK.init(this, config)
-        YouzanPreloader.preloadHtml(this, KaeConfig.S_URL_MAIN)
+        
+        // 确保 X5 内核初始化完成（回调或者延迟）后再执行预加载
+        com.tencent.smtt.sdk.QbSdk.setTbsListener(object : com.tencent.smtt.sdk.TbsListener {
+            override fun onDownloadFinish(i: Int) {}
+            override fun onInstallFinish(i: Int) {}
+            override fun onDownloadProgress(i: Int) {}
+        })
+        
+        com.tencent.smtt.sdk.QbSdk.initX5Environment(this, object : com.tencent.smtt.sdk.QbSdk.PreInitCallback {
+            override fun onCoreInitFinished() {
+                // X5 内核初始化完成
+                OfflineCacheLogger.log("X5初始化", "内核初始化完成")
+            }
+            override fun onViewInitFinished(isX5Core: Boolean) {
+                OfflineCacheLogger.log("X5初始化", "内核初始化完成，isX5Core=$isX5Core，开始预加载WebView")
+            }
+        })
+        com.youzanyun.sdk.sample.cache.WebViewPreloadManager.preload(
+            this@MyApplication,
+            KaeConfig.S_URL_MAIN,
+            HTML_CACHE_URLS
+        )
         LoginHelper.init(this)
     }
 }

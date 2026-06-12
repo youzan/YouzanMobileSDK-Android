@@ -31,13 +31,23 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:titleTextColor="@android:color/white"/>
 
+    <TextView
+        android:id="@+id/tv_page_metrics"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFF7E0"
+        android:padding="10dp"
+        android:text="页面耗时：等待加载"
+        android:textColor="#333333"
+        android:textSize="12sp" />
+
 <!--    <android.support.v4.widget.SwipeRefreshLayout-->
 <!--        android:id="@+id/swipe"-->
 <!--        android:layout_width="match_parent"-->
 <!--        android:layout_height="match_parent">-->
 
-        <com.youzan.androidsdk.basic.YouzanBrowser
-            android:id="@+id/view"
+        <FrameLayout
+            android:id="@+id/webview_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 

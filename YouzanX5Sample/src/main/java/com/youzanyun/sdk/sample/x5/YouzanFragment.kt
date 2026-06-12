@@ -26,6 +26,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.support.annotation.RequiresApi
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -34,8 +35,10 @@ import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import com.tencent.smtt.export.external.interfaces.GeolocationPermissionsCallback
+import com.tencent.smtt.export.external.interfaces.JsPromptResult
 import com.tencent.smtt.export.external.interfaces.WebResourceError
 import com.tencent.smtt.export.external.interfaces.WebResourceRequest
 import com.tencent.smtt.export.external.interfaces.WebResourceResponse
@@ -53,11 +56,13 @@ import com.youzan.androidsdkx5.compat.WebChromeClientConfig
 import com.youzan.spiderman.cache.SpiderMan
 import com.youzan.spiderman.html.HtmlHeader
 import com.youzan.spiderman.html.HtmlStatistic
+import com.youzanyun.sdk.sample.cache.OfflineCacheLogger
 import com.youzanyun.sdk.sample.helper.YouzanHelper
 import kotlinx.android.synthetic.main.activity_splash.*
 import okhttp3.*
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.util.*
@@ -67,12 +72,22 @@ import java.util.*
  * 这里使用[WebViewFragment]对[WebView]生命周期有更好的管控.
  */
 class YouzanFragment : WebViewFragment(), OnRefreshListener {
-    private val client: OkHttpClient = OkHttpClient()
+    private val timingPromptPrefix = "yz_timing://report?data="
     private lateinit var mView: YouzanBrowser
     private val mRefreshLayout: SwipeRefreshLayout? = null
     private var mToolbar: Toolbar? = null
     private var geolocationCallback: GeolocationPermissionsCallback? = null
     private var geolocationOrigin: String? = null
+    private var webViewReuseState: String = "unknown"
+    private var pendingTargetUrl: String? = null
+    private var metricsView: TextView? = null
+    @Volatile private var cachedWebViewCacheMode: Int = WebSettings.LOAD_DEFAULT
+    @Volatile private var cachedUserAgent: String? = null
+    private var pageStartAt = 0L
+    private var firstProgressAt = 0L
+    private var pageFinishAt = 0L
+    private var pageUrl: String? = null
+    private var jsTimingText: String? = null
 
     companion object {
         private const val CODE_REQUEST_LOGIN = 0x1000
@@ -89,6 +104,9 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true)
+        }
         view.findViewById<View>(R.id.back).setOnClickListener {
             onBackPressed()
         }
@@ -97,9 +115,17 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         val settings = webView.settings
         settings.cacheMode = WebSettings.LOAD_NO_CACHE
         settings.setGeolocationEnabled(true)
+        cachedWebViewCacheMode = settings.cacheMode
+        cachedUserAgent = settings.userAgentString
+        metricsView?.text = buildMetricsText("等待加载")
 
-        val url : String? = arguments!!.getString(YouzanActivity.KEY_URL)
+        var url : String? = arguments!!.getString(YouzanActivity.KEY_URL)
+        if (android.text.TextUtils.isEmpty(url)) {
+            url = com.youzanyun.sdk.sample.config.KaeConfig.S_URL_MAIN
+        }
+        pendingTargetUrl = url
         if (url != null) {
+            resetMetricsForNewLoad(url)
             mView.loadUrl(url)
         }
 
@@ -112,6 +138,10 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
     private fun setupViews(contentView: View) {
         //WebView
         mView = webView
+        if (webViewReuseState == "reused") {
+            mView.resetClientWrappers(activity)
+            OfflineCacheLogger.log("进入页面", "复用WebView已重置内部ChromeClient和WebViewClient")
+        }
         if (mView.getX5WebViewExtension() != null) {
             val data = Bundle()
             data.putBoolean("standardFullScreen", true) // true表示标准全屏，false表示X5全屏；不设置默认false，
@@ -119,6 +149,7 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             data.putInt("DefaultVideoScreen", 2) // 1：以页面内开始播放，2：以全屏开始播放；不设置默认：1
             mView.getX5WebViewExtension().invokeMiscMethod("setVideoParams", data)
         }
+        metricsView = contentView.findViewById(R.id.tv_page_metrics)
         mToolbar = contentView.findViewById<View>(R.id.toolbar) as Toolbar
         //        mRefreshLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe);
 
@@ -135,13 +166,15 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         mToolbar!!.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_share -> {
-//                    mView.sharePage()
-                    mView.loadUrl("javascript:prompt('spiderman://callback?timing=')")
-
+                    mView.sharePage()
                     true
                 }
                 R.id.action_refresh -> {
                     mView.reload()
+                    true
+                }
+                R.id.action_print_timing -> {
+                    printPageTiming()
                     true
                 }
                 else -> false
@@ -161,7 +194,13 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
 //
 //        })
 
-        mView.setWebChromeClient(object: CompatWebChromeClient(
+        mView.setWebChromeClient(createFragmentChromeClient())
+
+        mView.setWebViewClient(createFragmentWebViewClient())
+    }
+
+    private fun createFragmentChromeClient(): CompatWebChromeClient {
+        return object: CompatWebChromeClient(
             WebChromeClientConfig(
                 true, object : VideoCallback {
                     override fun onVideoCallback(b: Boolean) {
@@ -173,6 +212,28 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             override fun onReceivedTitle(p0: WebView?, p1: String?) {
                 super.onReceivedTitle(p0, p1)
                 mToolbar?.title = p1
+            }
+
+            override fun onJsPrompt(
+                view: WebView?,
+                url: String?,
+                message: String?,
+                defaultValue: String?,
+                result: JsPromptResult?
+            ): Boolean {
+                if (!message.isNullOrBlank() && handleTimingPrompt(message)) {
+                    result?.confirm("")
+                    return true
+                }
+                return super.onJsPrompt(view, url, message, defaultValue, result)
+            }
+
+            override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                super.onProgressChanged(view, newProgress)
+                if (newProgress > 0 && firstProgressAt == 0L) {
+                    firstProgressAt = SystemClock.elapsedRealtime()
+                    updateMetrics("开始渲染")
+                }
             }
 
             override fun onGeolocationPermissionsShowPrompt(
@@ -190,10 +251,11 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                 geolocationCallback = callback
                 requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), CODE_REQUEST_GEOLOCATION)
             }
-        })
+        }
+    }
 
-        mView.setWebViewClient(object : WebViewClient() {
-
+    private fun createFragmentWebViewClient(): WebViewClient {
+        return object : WebViewClient() {
             override fun onReceivedError(p0: WebView?, p1: WebResourceRequest?, p2: WebResourceError?) {
                 super.onReceivedError(p0, p1, p2)
             }
@@ -204,65 +266,84 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
             override fun onPageFinished(p0: WebView?, p1: String?) {
                 super.onPageFinished(p0, p1)
                 Log.d("lsd", "onPageFinished")
+
             }
 
             override fun onPageStarted(p0: WebView?, p1: String?, p2: Bitmap?) {
                 super.onPageStarted(p0, p1, p2)
                 Log.d("lsd", "onPageStarted")
                 Toast.makeText(activity, "onPageStarted", Toast.LENGTH_SHORT).show()
+                pageUrl = p1
+                pageStartAt = SystemClock.elapsedRealtime()
+                firstProgressAt = 0L
+                pageFinishAt = 0L
+                jsTimingText = null
+                updateMetrics("开始加载")
             }
 
-            private fun interceptHtmlRequest(context: Context, url: String): WebResourceResponse? {
-                val statistic = HtmlStatistic(url)
-                val htmlResponse = SpiderMan.getInstance().interceptHtml(context, url, statistic)
-                if (htmlResponse != null) {
-                    val webResourceResponse = WebResourceResponse(
-                        "text/html", htmlResponse.encoding, htmlResponse.contentStream
-                    )
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        webResourceResponse.responseHeaders = HtmlHeader.transferHeaderMapList(htmlResponse.header) // add response header
-                    }
-                    return webResourceResponse
-                }
-                return null
-            }
 
             @TargetApi(21)
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                val res = super.shouldInterceptRequest(view, request)
+                if (!SplashActivity.isCacheEnabled() || !SplashActivity.isReuseResourceEnabled()) {
+                    OfflineCacheLogger.log("资源分发", "总开关=${SplashActivity.isCacheEnabled()}，资源复用=${SplashActivity.isReuseResourceEnabled()}，直接交给 WebView 处理，url=${request.url}")
+                    return super.shouldInterceptRequest(view, request)
+                }
+                var cacheImpl = com.youzanyun.sdk.sample.cache.WebViewPreloadManager.getCacheImpl()
+                if (cacheImpl == null) {
+                    val appContext = activity?.applicationContext
+                    if (appContext == null) {
+                        OfflineCacheLogger.log("资源分发", "页面Context为空，交给WebView自行请求，url=${request.url}")
+                        return super.shouldInterceptRequest(view, request)
+                    }
+                    com.youzanyun.sdk.sample.cache.WebViewPreloadManager.preload(
+                        appContext,
+                        com.youzanyun.sdk.sample.config.KaeConfig.S_URL_MAIN,
+                        com.youzanyun.sdk.sample.MyApplication.HTML_CACHE_URLS
+                    )
+                    cacheImpl = com.youzanyun.sdk.sample.cache.WebViewPreloadManager.getCacheImpl()
+                }
+                if (cacheImpl != null) {
+                    val scheme = request.url.scheme?.trim()
+                    val method = request.method?.trim()
+                    if ((android.text.TextUtils.equals("http", scheme) || android.text.TextUtils.equals("https", scheme))
+                        && method.equals("GET", ignoreCase = true)
+                    ) {
+                        val adapterRequest = WebResourceRequestAdapter.adapter(request)
+                        val resourceResponse = adapterRequest?.let {
+                            cacheImpl.getResource(it, cachedWebViewCacheMode, cachedUserAgent)
+                        }
+                        if (resourceResponse != null) {
+                            val source = cacheImpl.lastResourceSource ?: "offline_unknown"
+                            if (source == com.youzanyun.sdk.sample.cache.WebResource.SOURCE_MEMORY
+                                || source == com.youzanyun.sdk.sample.cache.WebResource.SOURCE_NETWORK
+                                || source == com.youzanyun.sdk.sample.cache.WebResource.SOURCE_DISK
+                            ) {
+                                OfflineCacheLogger.log(
+                                    "资源分发",
+                                    "Fragment返回缓存结果，来源=$source，url=${request.url}，webView=${if (webViewReuseState == "reused") "复用" else "新建"}"
+                                )
+                                return WebResourceResponseAdapter.adapter(resourceResponse)
+                            }
+                            OfflineCacheLogger.log(
+                                "资源分发",
+                                "本次来源=$source，交给WebView自行请求，url=${request.url}，webView=${if (webViewReuseState == "reused") "复用" else "新建"}"
+                            )
+                        } else {
+                            OfflineCacheLogger.log(
+                                "资源分发",
+                                "Fragment未命中离线缓存，回退系统网络栈，url=${request.url}，webView=${if (webViewReuseState == "reused") "复用" else "新建"}"
+                            )
+                        }
+                    }
+                }
 
-//                if (res == null && request != null && request.url.toString().contains("init.json")) {
-//
-//                    return try {
-//                        // 构造 OkHttp 请求
-//                        val okhttpRequest: Request = Request.Builder()
-//                            .url(request.url.toString())
-//                            .build()
-//
-//                        // 发送 OkHttp 请求
-//                        val okhttpResponse = client.newCall(okhttpRequest).execute()
-//                        // 获取响应数据
-//                        val body = okhttpResponse.body()
-//                        val mimeType = okhttpResponse.header("Content-Type")
-//                        val encoding = if (body != null) body.contentType()!!.charset()!!.name() else "UTF-8"
-//                        val inputStream = body?.byteStream()
-//
-//                        // 构造 WebResourceResponse
-//                        val response = WebResourceResponse(mimeType, encoding, inputStream)
-//                        response.responseHeaders = Collections.singletonMap("Access-Control-Allow-Origin", "*.youzan.com");
-//                        null
-//                    } catch (e: IOException) {
-//                        e.printStackTrace()
-//                        null
-//                    }
-//                }
+                val res = super.shouldInterceptRequest(view, request)
                 return res;
             }
-        })
+        }
     }
 
     private fun setupYouzan() {
-
         mView!!.subscribe(object : AbsCheckAuthMobileEvent() {})
         //认证事件, 回调表示: 需要需要新的认证信息传入
         mView!!.subscribe(object : AbsAuthEvent() {
@@ -313,6 +394,13 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
                 //停止刷新
 //                mRefreshLayout.setRefreshing(false);
 //                mRefreshLayout.setEnabled(true);
+
+                pageFinishAt = SystemClock.elapsedRealtime()
+                OfflineCacheLogger.log(
+                    "页面耗时",
+                    "pageStart=${pageStartAt}，pageFinished=${pageFinishAt}，总耗时=${formatDuration(getPageTotalDuration())}，url=${pageUrl ?: "-"}，webView=${if (webViewReuseState == "reused") "复用" else "新建"}"
+                )
+                updateMetrics("页面完成")
             }
         })
         mView!!.subscribe(object : AbsCustomEvent() {
@@ -356,10 +444,27 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         super.onResume()
     }
 
+    override fun createWebView(contentView: View): YouzanBrowser {
+        val container = contentView.findViewById<android.widget.FrameLayout>(R.id.webview_container)
+        val targetUrl = arguments?.getString(YouzanActivity.KEY_URL)
+            ?: com.youzanyun.sdk.sample.config.KaeConfig.S_URL_MAIN
+        val acquireResult = com.youzanyun.sdk.sample.cache.WebViewPreloadManager.getWebView(activity!!, targetUrl) // 使用 Activity Context 避免 X5 创建异常
+        val browser = acquireResult.webView
+        webViewReuseState = if (acquireResult.reused) "reused" else "new"
+        OfflineCacheLogger.log("进入页面", "当前WebView实例=${if (webViewReuseState == "reused") "复用" else "新建"}，进入页面后加载目标URL=${targetUrl}")
+        if (acquireResult.reused) {
+            OfflineCacheLogger.log("进入页面", "复用实例来自缓存池，实例预创建阶段不加载URL，本次由Fragment重新加载目标URL")
+        }
+        Toast.makeText(activity, "WebView: $webViewReuseState", Toast.LENGTH_SHORT).show()
+        container.addView(browser, android.widget.FrameLayout.LayoutParams(
+            android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+            android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+        ))
+        return browser
+    }
+
     override fun getWebViewId(): Int {
-        //YouzanBrowser在布局文件中的id
-//        return 0
-        return R.id.view
+        return -1 // 不再通过 ID 获取
     }
 
     override fun getLayoutId(): Int {
@@ -409,15 +514,116 @@ class YouzanFragment : WebViewFragment(), OnRefreshListener {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
+
+    private fun updateMetrics(stage: String) {
+        metricsView?.text = buildMetricsText(stage)
+    }
+
+    private fun resetMetricsForNewLoad(url: String?) {
+        pageUrl = url
+        pageStartAt = 0L
+        firstProgressAt = 0L
+        pageFinishAt = 0L
+        jsTimingText = null
+        updateMetrics("等待加载")
+    }
+
+    private fun buildMetricsText(stage: String): String {
+        val total = getPageTotalDuration()
+        val firstProgress = if (pageStartAt > 0L && firstProgressAt > 0L) firstProgressAt - pageStartAt else 0L
+        val nativeText = "页面耗时: 阶段=${stage} | 总耗时(pageStart-pageFinished)=${formatDuration(total)} | 首次渲染=${formatDuration(firstProgress)} | URL=${pageUrl ?: "-"}"
+        val timingText = jsTimingText
+        return if (timingText.isNullOrBlank()) nativeText else "$nativeText\nJS耗时: $timingText"
+    }
+
+    private fun getPageTotalDuration(): Long {
+        return if (pageStartAt > 0L && pageFinishAt > 0L) pageFinishAt - pageStartAt else 0L
+    }
+
+    private fun formatDuration(duration: Long): String {
+        return if (duration <= 0L) "-" else "${duration}ms"
+    }
+
+    private fun printPageTiming() {
+        val total = getPageTotalDuration()
+        val message = if (total > 0L) {
+            "pageStart 到 pageFinished 总耗时=${formatDuration(total)}，url=${pageUrl ?: mView.url ?: "-"}，webView=${if (webViewReuseState == "reused") "复用" else "新建"}"
+        } else {
+            "暂无完整 pageStart/pageFinished 耗时，pageStart=${pageStartAt}，pageFinished=${pageFinishAt}，url=${pageUrl ?: mView.url ?: "-"}"
+        }
+        updateMetrics("手动打印耗时")
+        OfflineCacheLogger.log("页面耗时", message)
+        Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun handleTimingPrompt(message: String): Boolean {
+        if (!message.startsWith(timingPromptPrefix)) {
+            return false
+        }
+        val encodedPayload = message.removePrefix(timingPromptPrefix)
+        val payload = try {
+            Uri.decode(encodedPayload)
+        } catch (e: Exception) {
+            null
+        }
+        if (payload == null) {
+            jsTimingText = "解析失败"
+            updateMetrics("JS耗时解析失败")
+            OfflineCacheLogger.log("页面耗时", "JS耗时结果解析失败，message=$message")
+            return true
+        }
+        applyTimingPayload(payload)
+        return true
+    }
+
+    private fun applyTimingPayload(payload: String) {
+        try {
+            val jsonObject = JSONObject(payload)
+            if (!jsonObject.optBoolean("supported", false)) {
+                val reason = jsonObject.optString("reason", "当前页面暂不支持")
+                jsTimingText = "不支持，原因=$reason"
+                updateMetrics("JS耗时不可用")
+                OfflineCacheLogger.log("页面耗时", "JS耗时不可用，原因=$reason")
+                return
+            }
+            val metrics = jsonObject.optJSONObject("metrics")
+            if (metrics == null) {
+                jsTimingText = "未获取到统计结果"
+                updateMetrics("JS耗时缺失")
+                OfflineCacheLogger.log("页面耗时", "JS耗时结果为空")
+                return
+            }
+            val summary = "总加载=${formatJsDuration(metrics.optDouble("total"))} | 白屏=${formatJsDuration(metrics.optDouble("whiteScreen"))} | TTFB=${formatJsDuration(metrics.optDouble("ttfb"))} | DOM可交互=${formatJsDuration(metrics.optDouble("interactive"))} | DOM完成=${formatJsDuration(metrics.optDouble("domComplete"))}"
+            jsTimingText = summary
+            updateMetrics("已打印JS耗时")
+            OfflineCacheLogger.log("页面耗时", "JS耗时统计：$summary")
+        } catch (e: Exception) {
+            jsTimingText = "解析异常"
+            updateMetrics("JS耗时解析异常")
+            OfflineCacheLogger.log("页面耗时", "JS耗时解析异常，error=${e.message}")
+        }
+    }
+
+    private fun formatJsDuration(duration: Double): String {
+        return if (duration <= 0.0) "-" else "${String.format(Locale.US, "%.2f", duration)}ms"
+    }
 }
 
 class WebResourceResponseAdapter private constructor(private val mWebResourceResponse: android.webkit.WebResourceResponse) : WebResourceResponse() {
+    companion object {
+        private const val DEFAULT_ENCODING = "utf-8"
+
+        fun adapter(webResourceResponse: android.webkit.WebResourceResponse?): WebResourceResponseAdapter? {
+            return webResourceResponse?.let { WebResourceResponseAdapter(it) }
+        }
+    }
+
     override fun getMimeType(): String {
-        return mWebResourceResponse.mimeType
+        return mWebResourceResponse.mimeType ?: "text/plain"
     }
 
     override fun getData(): InputStream {
-        return mWebResourceResponse.data
+        return mWebResourceResponse.data ?: ByteArrayInputStream(ByteArray(0))
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -427,22 +633,17 @@ class WebResourceResponseAdapter private constructor(private val mWebResourceRes
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun getResponseHeaders(): Map<String, String> {
-        return mWebResourceResponse.responseHeaders
+        return mWebResourceResponse.responseHeaders ?: emptyMap()
     }
 
     override fun getEncoding(): String {
-        return mWebResourceResponse.encoding
+        // System WebResourceResponse allows a null encoding, but X5 treats it as non-null.
+        return mWebResourceResponse.encoding ?: DEFAULT_ENCODING
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun getReasonPhrase(): String {
-        return mWebResourceResponse.reasonPhrase
-    }
-
-    companion object {
-        fun adapter(webResourceResponse: android.webkit.WebResourceResponse?): WebResourceResponseAdapter? {
-            return webResourceResponse?.let { WebResourceResponseAdapter(it) }
-        }
+        return mWebResourceResponse.reasonPhrase ?: "OK"
     }
 }
 
@@ -474,9 +675,8 @@ class WebResourceRequestAdapter private constructor(private val mWebResourceRequ
     }
 
     companion object {
-        fun adapter(x5Request: WebResourceRequest): WebResourceRequestAdapter {
-            return WebResourceRequestAdapter(x5Request)
+        fun adapter(x5Request: WebResourceRequest?): WebResourceRequestAdapter? {
+            return x5Request?.let { WebResourceRequestAdapter(it) }
         }
     }
 }
-

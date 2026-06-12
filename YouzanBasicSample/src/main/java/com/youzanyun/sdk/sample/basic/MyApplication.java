@@ -22,10 +22,17 @@ import com.youzan.androidsdk.InitCallBack;
 import com.youzan.androidsdk.InitConfig;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.basic.YouzanBasicSDKAdapter;
-import com.youzan.androidsdk.basic.YouzanPreloader;
+import com.youzanyun.sdk.sample.cache.WebViewPreloadManager;
+
+import java.util.Arrays;
+import java.util.List;
 
 
 public class MyApplication extends Application {
+    public static final List<String> HTML_CACHE_URLS = Arrays.asList(
+            KaeConfig.URL_MAIN
+    );
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -45,6 +52,6 @@ public class MyApplication extends Application {
                 .build()
         );
 
-        YouzanPreloader.preloadHtml(this, KaeConfig.URL_MAIN);
+        WebViewPreloadManager.preload(this, KaeConfig.URL_MAIN, HTML_CACHE_URLS);
     }
 }

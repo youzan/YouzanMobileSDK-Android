@@ -19,25 +19,34 @@ package com.youzanyun.sdk.sample.basic;
 
 import static android.app.Activity.RESULT_OK;
 
+import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.JsPromptResult;
 import android.webkit.SslErrorHandler;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.youzan.androidsdk.YouzanLog;
 import com.youzan.androidsdk.YouzanSDK;
 import com.youzan.androidsdk.YouzanToken;
 import com.youzan.androidsdk.YzLoginCallback;
@@ -53,24 +62,59 @@ import com.youzan.androidsdk.event.AbsShareEvent;
 import com.youzan.androidsdk.event.AbsStateEvent;
 import com.youzan.androidsdk.model.goods.GoodsShareModel;
 import com.youzan.androidsdk.model.trade.TradePayFinishedModel;
+import com.youzanyun.sdk.sample.cache.OfflineCacheLogger;
+import com.youzanyun.sdk.sample.cache.WebResource;
+import com.youzanyun.sdk.sample.cache.WebViewCacheImpl;
+import com.youzanyun.sdk.sample.cache.WebViewPreloadManager;
+
+import org.json.JSONObject;
+
+import java.util.Locale;
 
 
 /**
  * 这里使用{@link WebViewFragment}对{@link android.webkit.WebView}生命周期有更好的管控.
  */
 public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayout.OnRefreshListener {
-    private YouzanBrowser mView;
-    private SwipeRefreshLayout mRefreshLayout;
-    private Toolbar mToolbar;
     private static final int CODE_REQUEST_LOGIN = 0x1000;
+    private static final String TIMING_PROMPT_PREFIX = "yz_timing://report?data=";
+
+    private YouzanBrowser mView;
+    private Toolbar mToolbar;
+    private TextView metricsView;
+    private String webViewReuseState = "unknown";
+    private long pageStartAt;
+    private long firstProgressAt;
+    private long pageFinishAt;
+    private String pageUrl;
+    private String jsTimingText;
+    private Context appContext;
+    private volatile int cachedWebViewCacheMode = WebSettings.LOAD_DEFAULT;
+    private volatile String cachedUserAgent;
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
         setupViews(view);
         setupYouzan();
 
-        final String url = getArguments().getString(YouzanActivity.KEY_URL);
+        WebSettings settings = mView.getSettings();
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        appContext = view.getContext().getApplicationContext();
+        cachedWebViewCacheMode = settings.getCacheMode();
+        cachedUserAgent = settings.getUserAgentString();
+        if (WebViewPreloadManager.getCacheImpl() == null) {
+            WebViewPreloadManager.preload(appContext, KaeConfig.URL_MAIN, MyApplication.HTML_CACHE_URLS);
+        }
+
+        String url = getArguments() == null ? null : getArguments().getString(YouzanActivity.KEY_URL);
+        if (TextUtils.isEmpty(url)) {
+            url = KaeConfig.URL_MAIN;
+        }
+        resetMetricsForNewLoad(url);
         mView.loadUrl(url);
         //加载H5时，开启默认loading
         //设置自定义loading图片
@@ -78,13 +122,13 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
     }
 
     private void setupViews(View contentView) {
-        //WebView
         mView = getWebView();
-
+        if ("reused".equals(webViewReuseState)) {
+            resetInternalClientWrappersIfSupported();
+        }
+        metricsView = (TextView) contentView.findViewById(R.id.tv_page_metrics);
         mToolbar = (Toolbar) contentView.findViewById(R.id.toolbar);
-//        mRefreshLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe);
 
-        //分享按钮
         mToolbar.setTitle(R.string.loading_page);
         mToolbar.inflateMenu(R.menu.menu_youzan_share);
         mToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -94,51 +138,144 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                     case R.id.action_share:
                         mView.sharePage();
                         return true;
+                    case R.id.action_refresh:
+                        mView.reload();
+                        return true;
+                    case R.id.action_print_timing:
+                        printPageTiming();
+                        return true;
                     default:
                         return false;
                 }
             }
         });
 
-        //刷新
-//        mRefreshLayout.setOnRefreshListener(this);
-//        mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.RED);
-//        mRefreshLayout.setEnabled(false);
+        // 复用 WebView 进入页面时，重新绑定当前 Fragment 的 client，避免沿用预加载 client。
+        mView.setWebChromeClient(createFragmentChromeClient());
+        mView.setWebViewClient(createFragmentWebViewClient());
+    }
 
-        mView.setWebViewClient(new WebViewClient() {
-
-
-            @Override
-            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-                // 接入是需手动处理此部分证书逻辑
-                handler.proceed();
-            }
-
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-            }
-        });
-
-        mView.setWebChromeClient(new CompatWebChromeClient(
+    private CompatWebChromeClient createFragmentChromeClient() {
+        return new CompatWebChromeClient(
                 new WebChromeClientConfig(
                         true, new VideoCallback() {
                     @Override
                     public void onVideoCallback(boolean b) {
                         Toast.makeText(getActivity(), "" + b, Toast.LENGTH_SHORT).show();
                     }
-
-
-                }
-                )
+                })
         ) {
             @Override
             public void onReceivedTitle(WebView view, String title) {
                 super.onReceivedTitle(view, title);
+                if (mToolbar != null) {
+                    mToolbar.setTitle(title);
+                }
             }
-        });
 
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                super.onProgressChanged(view, newProgress);
+                if (newProgress > 0 && firstProgressAt == 0L) {
+                    firstProgressAt = SystemClock.elapsedRealtime();
+                    updateMetrics("开始渲染");
+                }
+            }
+
+            @Override
+            public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, JsPromptResult result) {
+                if (!TextUtils.isEmpty(message) && handleTimingPrompt(message)) {
+                    result.confirm("");
+                    return true;
+                }
+                return super.onJsPrompt(view, url, message, defaultValue, result);
+            }
+        };
+    }
+
+    private WebViewClient createFragmentWebViewClient() {
+        return new WebViewClient() {
+            @Override
+            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+                // 接入是需手动处理此部分证书逻辑
+                handler.proceed();
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                pageUrl = url;
+                pageStartAt = SystemClock.elapsedRealtime();
+                firstProgressAt = 0L;
+                pageFinishAt = 0L;
+                jsTimingText = null;
+                OfflineCacheLogger.log("页面耗时", "onPageStarted，url=" + safe(url) + "，webView=" + getWebViewLabel());
+                updateMetrics("开始加载");
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                pageFinishAt = SystemClock.elapsedRealtime();
+                OfflineCacheLogger.log(
+                        "页面耗时",
+                        "pageStart=" + pageStartAt
+                                + "，pageFinished=" + pageFinishAt
+                                + "，总耗时=" + formatDuration(getPageTotalDuration())
+                                + "，url=" + safe(url)
+                                + "，webView=" + getWebViewLabel()
+                );
+                updateMetrics("页面完成");
+            }
+
+            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                if (request == null || request.getUrl() == null) {
+                    return super.shouldInterceptRequest(view, request);
+                }
+                if (!MainActivity.isCacheEnabled() || !MainActivity.isReuseResourceEnabled()) {
+                    OfflineCacheLogger.log("资源分发", "总开关=" + MainActivity.isCacheEnabled() + "，资源复用=" + MainActivity.isReuseResourceEnabled() + "，直接交给 WebView 处理，url=" + request.getUrl());
+                    return super.shouldInterceptRequest(view, request);
+                }
+                if (request.getUrl().toString().contains("data.json")) {
+                    return super.shouldInterceptRequest(view, request);
+                }
+                WebViewCacheImpl cacheImpl = WebViewPreloadManager.getCacheImpl();
+                if (cacheImpl == null) {
+                    return super.shouldInterceptRequest(view, request);
+                }
+                String scheme = request.getUrl().getScheme();
+                String method = request.getMethod();
+                if ((TextUtils.equals("http", scheme) || TextUtils.equals("https", scheme))
+                        && "GET".equalsIgnoreCase(method)) {
+                    WebResourceResponse resourceResponse = cacheImpl.getResource(request, cachedWebViewCacheMode, cachedUserAgent);
+                    if (resourceResponse != null) {
+                        String source = cacheImpl.getLastResourceSource();
+                        if (WebResource.SOURCE_MEMORY.equals(source)
+                                || WebResource.SOURCE_NETWORK.equals(source)
+                                || WebResource.SOURCE_DISK.equals(source)) {
+                            OfflineCacheLogger.log(
+                                    "资源分发",
+                                    "Fragment返回缓存结果，来源=" + source + "，url=" + request.getUrl() + "，webView=" + getWebViewLabel()
+                            );
+                            return resourceResponse;
+                        }
+                        OfflineCacheLogger.log(
+                                "资源分发",
+                                "本次来源=" + source + "，交给WebView自行请求，url=" + request.getUrl() + "，webView=" + getWebViewLabel()
+                        );
+                    } else {
+                        OfflineCacheLogger.log(
+                                "资源分发",
+                                "Fragment未命中离线缓存，回退系统网络栈，url=" + request.getUrl() + "，webView=" + getWebViewLabel()
+                        );
+                    }
+                }
+                return super.shouldInterceptRequest(view, request);
+            }
+        };
     }
 
     private void setupYouzan() {
@@ -162,7 +299,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                 //TODO 手机号自己填入
                 YouzanSDK.yzlogin("31467761", "https://cdn.daddylab.com/Upload/android/20210113/021119/au9j4d6aed5xfweg.jpeg?w=1080&h=1080", "", "一百亿养乐多", "0", new YzLoginCallback() {
                     @Override
-                    public void onSuccess(YouzanToken youzanToken) {
+                    public void onSuccess(final YouzanToken youzanToken) {
                         mView.post(new Runnable() {
                             @Override
                             public void run() {
@@ -172,7 +309,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
                     }
 
                     @Override
-                    public void onFail(String s) {
+                    public void onFail(String message, int code) {
 
                     }
                 });
@@ -192,10 +329,6 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
             @Override
             public void call(Context context) {
                 mToolbar.setTitle(mView.getTitle());
-
-                //停止刷新
-//                mRefreshLayout.setRefreshing(false);
-//                mRefreshLayout.setEnabled(true);
             }
         });
         //分享事件, 回调表示: 获取到当前页面的分享信息数据
@@ -225,13 +358,37 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         });
     }
 
+    @Override
+    protected YouzanBrowser createWebView(View contentView) {
+        FrameLayout container = (FrameLayout) contentView.findViewById(R.id.webview_container);
+        String targetUrl = getArguments() == null ? null : getArguments().getString(YouzanActivity.KEY_URL);
+        if (TextUtils.isEmpty(targetUrl)) {
+            targetUrl = KaeConfig.URL_MAIN;
+        }
+        WebViewPreloadManager.WebViewAcquireResult acquireResult = WebViewPreloadManager.getWebView(getActivity(), targetUrl);
+        YouzanBrowser browser = acquireResult.webView;
+        webViewReuseState = acquireResult.reused ? "reused" : "new";
+        OfflineCacheLogger.log("进入页面", "当前WebView实例=" + getWebViewLabel());
+        if (acquireResult.reused) {
+            OfflineCacheLogger.log("进入页面", "复用实例仅完成WebView创建预加载，进入页面后加载目标URL，url=" + targetUrl);
+        }
+        Toast.makeText(getActivity(), "WebView: " + getWebViewLabel(), Toast.LENGTH_SHORT).show();
+        if (browser.getParent() instanceof FrameLayout) {
+            ((FrameLayout) browser.getParent()).removeView(browser);
+        } else if (browser.getParent() instanceof android.view.ViewGroup) {
+            ((android.view.ViewGroup) browser.getParent()).removeView(browser);
+        }
+        container.addView(browser, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+        ));
+        return browser;
+    }
 
     @Override
     protected int getWebViewId() {
-        //YouzanBrowser在布局文件中的id
-        return R.id.view;
+        return -1;
     }
-
 
     @Override
     protected int getLayoutId() {
@@ -267,5 +424,141 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
             mView.receiveFile(requestCode, data);
         }
     }
-}
 
+    private void updateMetrics(String stage) {
+        if (metricsView != null) {
+            metricsView.setText(buildMetricsText(stage));
+        }
+    }
+
+    private void resetMetricsForNewLoad(String url) {
+        pageUrl = url;
+        pageStartAt = 0L;
+        firstProgressAt = 0L;
+        pageFinishAt = 0L;
+        jsTimingText = null;
+        updateMetrics("等待加载");
+    }
+
+    private String buildMetricsText(String stage) {
+        long total = getPageTotalDuration();
+        long firstProgress = pageStartAt > 0L && firstProgressAt > 0L ? firstProgressAt - pageStartAt : 0L;
+        String nativeText = "页面耗时: 阶段=" + stage
+                + " | 总耗时(pageStart-pageFinished)=" + formatDuration(total)
+                + " | 首次渲染=" + formatDuration(firstProgress)
+                + " | URL=" + safe(pageUrl);
+        if (TextUtils.isEmpty(jsTimingText)) {
+            return nativeText;
+        }
+        return nativeText + "\nJS耗时: " + jsTimingText;
+    }
+
+    private long getPageTotalDuration() {
+        return pageStartAt > 0L && pageFinishAt > 0L ? pageFinishAt - pageStartAt : 0L;
+    }
+
+    private String formatDuration(long duration) {
+        return duration <= 0L ? "-" : duration + "ms";
+    }
+
+    private void printPageTiming() {
+        long total = getPageTotalDuration();
+        String message = total > 0L
+                ? "pageStart 到 pageFinished 总耗时=" + formatDuration(total) + "，url=" + safe(pageUrl != null ? pageUrl : mView.getUrl()) + "，webView=" + getWebViewLabel()
+                : "暂无完整 pageStart/pageFinished 耗时，pageStart=" + pageStartAt + "，pageFinished=" + pageFinishAt + "，url=" + safe(pageUrl != null ? pageUrl : mView.getUrl());
+        updateMetrics("手动打印耗时");
+        OfflineCacheLogger.log("页面耗时", message);
+        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+        printNavigationTimingByJs();
+    }
+
+    private void printNavigationTimingByJs() {
+        String script = "(function(){"
+                + "var nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||null;"
+                + "if(!nav){prompt('" + TIMING_PROMPT_PREFIX + "'+encodeURIComponent(JSON.stringify({supported:false,reason:'当前浏览器不支持 PerformanceNavigationTiming API'})));return;}"
+                + "var d=function(s,e){var v=e-s;return v>=0?Number(v.toFixed(2)):0;};"
+                + "var m={redirect:d(nav.redirectStart,nav.redirectEnd),dns:d(nav.domainLookupStart,nav.domainLookupEnd),tcp:d(nav.connectStart,nav.connectEnd),ttfb:d(nav.requestStart,nav.responseStart),download:d(nav.responseStart,nav.responseEnd),domParse:d(nav.responseEnd,nav.domInteractive),domContentLoaded:d(nav.domContentLoadedEventStart,nav.domContentLoadedEventEnd),domComplete:d(nav.domInteractive,nav.domComplete),loadEvent:d(nav.loadEventStart,nav.loadEventEnd),total:d(nav.startTime,nav.loadEventEnd),whiteScreen:d(nav.startTime,nav.responseStart),interactive:d(nav.startTime,nav.domInteractive)};"
+                + "console.log('页面性能各阶段耗时统计 (单位: ms)');console.table(m);"
+                + "prompt('" + TIMING_PROMPT_PREFIX + "'+encodeURIComponent(JSON.stringify({supported:true,metrics:m,loadEventEnd:nav.loadEventEnd})));"
+                + "})();";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            mView.evaluateJavascript(script, null);
+        } else {
+            mView.loadUrl("javascript:" + script);
+        }
+    }
+
+    private boolean handleTimingPrompt(String message) {
+        if (!message.startsWith(TIMING_PROMPT_PREFIX)) {
+            return false;
+        }
+        String encodedPayload = message.substring(TIMING_PROMPT_PREFIX.length());
+        String payload;
+        try {
+            payload = Uri.decode(encodedPayload);
+        } catch (Exception e) {
+            payload = null;
+        }
+        if (payload == null) {
+            jsTimingText = "解析失败";
+            updateMetrics("JS耗时解析失败");
+            OfflineCacheLogger.log("页面耗时", "JS耗时结果解析失败，message=" + message);
+            return true;
+        }
+        applyTimingPayload(payload);
+        return true;
+    }
+
+    private void applyTimingPayload(String payload) {
+        try {
+            JSONObject jsonObject = new JSONObject(payload);
+            if (!jsonObject.optBoolean("supported", false)) {
+                String reason = jsonObject.optString("reason", "当前页面暂不支持");
+                jsTimingText = "不支持，原因=" + reason;
+                updateMetrics("JS耗时不可用");
+                OfflineCacheLogger.log("页面耗时", "JS耗时不可用，原因=" + reason);
+                return;
+            }
+            JSONObject metrics = jsonObject.optJSONObject("metrics");
+            if (metrics == null) {
+                jsTimingText = "未获取到统计结果";
+                updateMetrics("JS耗时缺失");
+                OfflineCacheLogger.log("页面耗时", "JS耗时结果为空");
+                return;
+            }
+            String summary = "总加载=" + formatJsDuration(metrics.optDouble("total"))
+                    + " | 白屏=" + formatJsDuration(metrics.optDouble("whiteScreen"))
+                    + " | TTFB=" + formatJsDuration(metrics.optDouble("ttfb"))
+                    + " | DOM可交互=" + formatJsDuration(metrics.optDouble("interactive"))
+                    + " | DOM完成=" + formatJsDuration(metrics.optDouble("domComplete"));
+            jsTimingText = summary;
+            updateMetrics("已打印JS耗时");
+            OfflineCacheLogger.log("页面耗时", "JS耗时统计：" + summary);
+        } catch (Exception e) {
+            jsTimingText = "解析异常";
+            updateMetrics("JS耗时解析异常");
+            OfflineCacheLogger.log("页面耗时", "JS耗时解析异常，error=" + e.getMessage());
+        }
+    }
+
+    private String formatJsDuration(double duration) {
+        return duration <= 0.0 ? "-" : String.format(Locale.US, "%.2fms", duration);
+    }
+
+    private String getWebViewLabel() {
+        return "reused".equals(webViewReuseState) ? "复用" : "新建";
+    }
+
+    private String safe(String value) {
+        return TextUtils.isEmpty(value) ? "-" : value;
+    }
+
+    private void resetInternalClientWrappersIfSupported() {
+        try {
+            mView.getClass().getMethod("resetClientWrappers", Context.class).invoke(mView, getActivity());
+            OfflineCacheLogger.log("进入页面", "复用WebView已重置内部ChromeClient和WebViewClient");
+        } catch (Exception ignore) {
+            OfflineCacheLogger.log("进入页面", "当前Basic SDK不支持重置内部ClientWrapper，已重新绑定Fragment的Client");
+        }
+    }
+}

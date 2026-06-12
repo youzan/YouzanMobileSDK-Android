@@ -47,9 +47,16 @@ public abstract class WebViewFragment extends Fragment {
             mWebView.destroy();
         }
         View contentView = inflater.inflate(getLayoutId(), container, false);
-        mWebView = (YouzanBrowser) contentView.findViewById(getWebViewId());
+        mWebView = createWebView(contentView);
         mIsWebViewAvailable = true;
         return contentView;
+    }
+
+    /**
+     * @return The YouzanBrowser instance to use.
+     */
+    protected YouzanBrowser createWebView(View contentView) {
+        return (YouzanBrowser) contentView.findViewById(getWebViewId());
     }
 
     /**
@@ -89,6 +96,9 @@ public abstract class WebViewFragment extends Fragment {
     @Override
     public void onDestroyView() {
         mIsWebViewAvailable = false;
+        if (mWebView != null && mWebView.getParent() instanceof ViewGroup) {
+            ((ViewGroup) mWebView.getParent()).removeView(mWebView);
+        }
         super.onDestroyView();
     }
 
@@ -98,6 +108,11 @@ public abstract class WebViewFragment extends Fragment {
     @Override
     public void onDestroy() {
         if (mWebView != null) {
+            // 解决从缓存池中取出的 WebView 在 onDestroy 时，如果不是 Activity Context 可能会引发泄漏或崩溃的问题
+            // 先将 WebView 从父容器移除
+            if (mWebView.getParent() instanceof ViewGroup) {
+                ((ViewGroup) mWebView.getParent()).removeView(mWebView);
+            }
             mWebView.destroy();
             mWebView = null;
         }

@@ -23,6 +23,7 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import com.youzanyun.sdk.sample.config.KaeConfig
 
 class YouzanActivity : AppCompatActivity() {
     private var mFragment: YouzanFragment? = null
@@ -32,10 +33,18 @@ class YouzanActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_placeholder)
 
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            android.webkit.WebView.setWebContentsDebuggingEnabled(true)
+        }
 
         mFragment = YouzanFragment()
-        mFragment!!.arguments = intent.extras
+        var url = intent.getStringExtra(KEY_URL)
+        if (android.text.TextUtils.isEmpty(url)) {
+            url = KaeConfig.S_URL_MAIN
+        }
+        val bundle = Bundle()
+        bundle.putString(KEY_URL, url)
+        mFragment!!.arguments = bundle
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.placeholder, mFragment!!)
