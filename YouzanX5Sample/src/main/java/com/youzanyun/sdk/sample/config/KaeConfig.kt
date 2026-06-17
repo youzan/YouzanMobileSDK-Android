@@ -9,7 +9,7 @@ object KaeConfig {
 //    const val S_CLIENT_ID = "65f0d0546055bbc199"
 //    const val S_CLIENT_ID = "1c3691de6f9aebc0d4"
     const val S_CLIENT_ID = qq.S_CLIENT_ID
-    const val S_URL_MAIN =  qq.S_URL_MAIN
+    const val S_URL_MAIN =  "https://shop92396879.m.youzan.com/v2/showcase/homepage?alias=xR6aSOPPhM"
     const val S_APP_KEY =  qq.S_APP_KEY
 
 

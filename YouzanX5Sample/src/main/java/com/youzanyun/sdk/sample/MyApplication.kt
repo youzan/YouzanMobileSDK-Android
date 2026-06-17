@@ -21,17 +21,15 @@ import android.app.Application
 import android.app.AsyncNotedAppOp
 import android.app.SyncNotedAppOp
 import android.os.Build
-import android.os.Looper
 import android.util.Log
 import android.widget.ImageView
-import com.tencent.smtt.utils.TbsLog
-import com.tencent.smtt.utils.TbsLogClient
 import com.youzan.androidsdk.InitConfig
-import com.youzan.androidsdk.LogCallback
 import com.youzan.androidsdk.YouzanSDK
 import com.youzan.androidsdk.adapter.IImageAdapter
 import com.youzan.androidsdkx5.YouZanSDKX5Adapter
-import com.youzan.androidsdkx5.YouzanPreloader
+import com.youzan.spiderman.cache.CachePreference
+import com.youzan.spiderman.remote.config.ConfigManager
+import com.youzan.spiderman.remote.config.ConfigPref
 import com.youzanyun.sdk.sample.cache.WebResCacheManager
 import com.youzanyun.sdk.sample.cache.WebViewPreloadManager
 import com.youzanyun.sdk.sample.config.KaeConfig
@@ -99,6 +97,13 @@ class MyApplication : Application() {
             YouzanSDK.init(this, config)
 //        YouzanPreloader.preloadHtml(this, KaeConfig.S_URL_MAIN)
             LoginHelper.init(this)
+
+            // 初始化SDK
+            //appkey:可以前往<a href="http://open.youzan.com/sdk/access">有赞开放平台</a>申请
+            val configPref = ConfigPref()
+            configPref.configEntity.config.resourceConfig.enableCache = false
+            CachePreference.flush(configPref, "config_pref")
+            ConfigManager.getInstance().setEnableCache(false)
         }
     }
 }

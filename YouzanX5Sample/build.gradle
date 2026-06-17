@@ -88,7 +88,7 @@ dependencies {
     implementation 'androidx.drawerlayout:drawerlayout:1.1.1'
     //x5版本
 
-    implementation("com.youzanyun.open.mobile:x5sdk:8.0.0")
+    implementation("com.youzanyun.open.mobile:x5sdk:8.0.1")
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     implementation("com.squareup.okio:okio:1.17.2")
     implementation 'com.squareup.okhttp3:okhttp:3.14.9'
