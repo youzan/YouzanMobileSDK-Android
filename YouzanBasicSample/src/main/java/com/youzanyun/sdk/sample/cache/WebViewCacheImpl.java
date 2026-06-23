@@ -48,17 +48,13 @@ public class WebViewCacheImpl implements WebViewCache {
             if (shouldCacheHtml(url)) {
                 mimeType = "text/html";
             }
-            if ("text/html".equalsIgnoreCase(mimeType) && !shouldCacheHtml(url)) {
-                OfflineCacheLogger.log("资源识别", "HTML未命中预缓存白名单，不走离线缓存，url=" + url);
-                return null;
-            }
             if (url.toLowerCase(Locale.ROOT).contains(".webp")) {
                 OfflineCacheLogger.log("资源识别", "检测到webp资源，mime=" + mimeType + "，url=" + url);
             }
-            if (!isSupportedMimeType(mimeType)) {
-                OfflineCacheLogger.log("资源识别", "资源类型不支持离线缓存，mime=" + mimeType + "，url=" + url);
-                return null;
+            if (isJson(mimeType)) {
+                OfflineCacheLogger.log("资源识别", "JSON资源走本地OkHttp请求，不写入离线缓存，url=" + url);
             }
+            isSupportedMimeType(mimeType);
             CacheRequest cacheRequest = new CacheRequest();
             cacheRequest.setUrl(url);
             cacheRequest.setMime(mimeType);
@@ -173,6 +169,9 @@ public class WebViewCacheImpl implements WebViewCache {
         if (lowerUrl.contains(".css")) {
             return "text/css";
         }
+        if (lowerUrl.contains(".json")) {
+            return "application/json";
+        }
         if (lowerUrl.contains(".js")) {
             return "application/javascript";
         }
@@ -181,29 +180,33 @@ public class WebViewCacheImpl implements WebViewCache {
 
     private boolean isSupportedMimeType(String mimeType) {
         if (mimeType == null) {
-            return false;
+            OfflineCacheLogger.log("资源识别", "未知类型资源走本地OkHttp请求，不写入内存/磁盘缓存");
+            return true;
         }
         if (mimeType.startsWith("image")) {
-            boolean enableImageCache = getCacheConfig().isEnableImageCache();
-            if (!enableImageCache) {
-                OfflineCacheLogger.log("资源识别", "图片缓存未开启，不走离线缓存，mime=" + mimeType);
-            }
-            return enableImageCache;
+            OfflineCacheLogger.log("资源识别", "图片资源走本地OkHttp请求，不写入内存/磁盘缓存，mime=" + mimeType);
+            return true;
         }
         if ("text/html".equalsIgnoreCase(mimeType)) {
+            OfflineCacheLogger.log("资源识别", "HTML资源走本地OkHttp请求，不写入内存/磁盘缓存，mime=" + mimeType);
+            return true;
+        }
+        if (isJson(mimeType)) {
             return true;
         }
         if ("text/css".equalsIgnoreCase(mimeType) || mimeType.contains("javascript")) {
-            boolean enableJsCssCache = getCacheConfig().isEnableJsCssCache();
-            if (!enableJsCssCache) {
-                OfflineCacheLogger.log("资源识别", "CSS/JS缓存未开启，不走离线缓存，mime=" + mimeType);
-            }
-            return enableJsCssCache;
+            OfflineCacheLogger.log("资源识别", "CSS/JS资源走本地OkHttp请求，不写入内存/磁盘缓存，mime=" + mimeType);
+            return true;
         }
-        return false;
+        OfflineCacheLogger.log("资源识别", "接口/其他资源走本地OkHttp请求，不写入内存/磁盘缓存，mime=" + mimeType);
+        return true;
     }
 
     private boolean shouldCacheHtml(String url) {
         return url != null && mHtmlCacheUrls.contains(url);
+    }
+
+    private boolean isJson(String mimeType) {
+        return mimeType != null && mimeType.toLowerCase(Locale.ROOT).contains("json");
     }
 }

@@ -21,12 +21,24 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.youzan.androidsdk.YouzanSDK;
+import com.youzanyun.sdk.sample.cache.OfflineCacheLogger;
 import com.youzanyun.sdk.sample.cache.WebViewPreloadManager;
+import com.youzanyun.sdk.sample.cache.okhttp.OkHttpClientProvider;
+
+import java.io.IOException;
+
+import okhttp3.CacheControl;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 
 public class MainActivity extends Activity implements View.OnClickListener {
+    private static final String HUMMER_JS_URL = "https://b.yzcdn.cn/hummer/hummer-browser/index.vue-3.0.41.js";
+
     private Button enableCacheButton;
     private Button disableCacheButton;
     private Button enableReuseWebViewButton;
@@ -84,6 +96,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         setContentView(R.layout.activity_main);
         findViewById(R.id.button_open).setOnClickListener(this);
         findViewById(R.id.button_clear).setOnClickListener(this);
+        findViewById(R.id.button_okhttp_demo).setOnClickListener(this);
         enableCacheButton = (Button) findViewById(R.id.btn_enable_cache);
         disableCacheButton = (Button) findViewById(R.id.btn_disable_cache);
         enableReuseWebViewButton = (Button) findViewById(R.id.btn_enable_reuse_webview);
@@ -117,6 +130,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.button_clear:
                 YouzanSDK.userLogout(this);
+                break;
+            case R.id.button_okhttp_demo:
+                requestHummerJsByOkHttp();
                 break;
             case R.id.btn_enable_cache:
                 setCacheEnabled(this, true);
@@ -182,5 +198,51 @@ public class MainActivity extends Activity implements View.OnClickListener {
         disableJsCssCacheButton.setEnabled(resourceEnabled && isJsCssCacheEnabled());
         enableImageCacheButton.setEnabled(resourceEnabled && !isImageCacheEnabled());
         disableImageCacheButton.setEnabled(resourceEnabled && isImageCacheEnabled());
+    }
+
+    private void requestHummerJsByOkHttp() {
+        Toast.makeText(this, "开始OkHttp请求Hummer JS", Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Response response = null;
+                try {
+                    Request request = new Request.Builder()
+                            .url(HUMMER_JS_URL)
+                            .get()
+                            .cacheControl(new CacheControl.Builder().noStore().build())
+                            .header("User-Agent", "BasicSample okhttp")
+                            .header("Accept", "*/*")
+                            .build();
+                    response = OkHttpClientProvider.get(MainActivity.this).newCall(request).execute();
+                    ResponseBody body = response.body();
+                    long bodyLength = body == null ? 0L : body.bytes().length;
+                    final String message = "code=" + response.code()
+                            + "，protocol=" + response.protocol()
+                            + "，redirect=" + (response.priorResponse() != null)
+                            + "，bodyLength=" + bodyLength
+                            + "，finalUrl=" + response.request().url();
+                    OfflineCacheLogger.log("OkHttp示例", message);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } catch (final IOException e) {
+                    OfflineCacheLogger.log("OkHttp示例", "请求失败，error=" + e.getMessage());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "OkHttp请求失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } finally {
+                    if (response != null) {
+                        response.close();
+                    }
+                }
+            }
+        }, "hummer-okhttp-demo").start();
     }
 }

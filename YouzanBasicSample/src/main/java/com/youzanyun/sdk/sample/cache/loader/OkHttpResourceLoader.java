@@ -52,6 +52,7 @@ public class OkHttpResourceLoader implements ResourceLoader {
         if (TextUtils.isEmpty(userAgent)) {
             userAgent = DEFAULT_USER_AGENT;
         }
+        userAgent = appendOkHttpUserAgent(userAgent);
         Locale locale = Locale.getDefault();
         String acceptLanguage;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
@@ -64,7 +65,6 @@ public class OkHttpResourceLoader implements ResourceLoader {
         }
         Request.Builder requestBuilder = new Request.Builder()
                 .removeHeader(HEADER_USER_AGENT)
-                .addHeader(HEADER_USER_AGENT, userAgent)
                 .addHeader("Upgrade-Insecure-Requests", "1")
                 .addHeader("X-Requested-With", mContext.getPackageName())
                 .addHeader("Accept", "*/*")
@@ -74,11 +74,18 @@ public class OkHttpResourceLoader implements ResourceLoader {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
                 String header = entry.getKey();
                 if (!isNeedStripHeader(header)) {
+                    String headerValue = entry.getValue();
+                    if (HEADER_USER_AGENT.equalsIgnoreCase(header)) {
+                        userAgent = appendOkHttpUserAgent(headerValue);
+                        continue;
+                    }
                     requestBuilder.removeHeader(header);
-                    requestBuilder.addHeader(header, entry.getValue());
+                    requestBuilder.addHeader(header, headerValue);
                 }
             }
         }
+        requestBuilder.header(HEADER_USER_AGENT, userAgent);
+        OfflineCacheLogger.log("OkHttp请求", "最终User-Agent=" + userAgent + "，url=" + url);
         Request request = requestBuilder
                 .url(url)
                 .cacheControl(cacheControl)
@@ -88,6 +95,14 @@ public class OkHttpResourceLoader implements ResourceLoader {
         try {
             WebResource remoteResource = new WebResource();
             response = client.newCall(request).execute();
+            OfflineCacheLogger.log(
+                    "OkHttp请求",
+                    "实际协议=" + response.protocol()
+                            + "，code=" + response.code()
+                            + "，是否重定向=" + (response.priorResponse() != null)
+                            + "，最终url=" + response.request().url()
+                            + "，原始url=" + url
+            );
             if (isInterceptorThisRequest(response)) {
                 sourceRequest.setResolvedSource(WebResource.SOURCE_NETWORK);
                 remoteResource.setResponseCode(response.code());
@@ -135,6 +150,13 @@ public class OkHttpResourceLoader implements ResourceLoader {
 
     private CacheControl createNoStoreCacheControl() {
         return new CacheControl.Builder().noStore().build();
+    }
+
+    private String appendOkHttpUserAgent(String userAgent) {
+        if (TextUtils.isEmpty(userAgent)) {
+            return DEFAULT_USER_AGENT + " okhttp";
+        }
+        return userAgent.toLowerCase(Locale.ROOT).contains("okhttp") ? userAgent : userAgent + " okhttp";
     }
 
     private boolean isNeedStripHeader(String headerName) {

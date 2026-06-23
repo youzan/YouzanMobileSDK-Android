@@ -50,7 +50,7 @@ public class DefaultWebResponseGenerator implements WebResourceResponseGenerator
             urlMime = contentType;
         }
         if (TextUtils.isEmpty(urlMime)) {
-            return null;
+            urlMime = "application/octet-stream";
         }
         byte[] resourceBytes = resource.getOriginBytes();
         if (resourceBytes == null || resourceBytes.length < 0) {

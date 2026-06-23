@@ -155,4 +155,10 @@
         android:layout_height="wrap_content"
         android:text="@string/clear"/>
 
+    <Button
+        android:id="@+id/button_okhttp_demo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="OkHttp请求Hummer JS"/>
+
 </LinearLayout>

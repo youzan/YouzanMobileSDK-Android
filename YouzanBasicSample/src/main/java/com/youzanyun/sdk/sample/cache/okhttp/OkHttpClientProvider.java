@@ -5,10 +5,12 @@ import android.content.Context;
 import com.youzanyun.sdk.sample.cache.cookie.FastCookieManager;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 
 /**
  * Created by Ryan
@@ -45,9 +47,10 @@ public class OkHttpClientProvider {
                 .readTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(20, TimeUnit.SECONDS)
                 .connectTimeout(20, TimeUnit.SECONDS)
-                // auto redirects is not allowed, bc we need to notify webview to do some internal processing.
-                .followSslRedirects(false)
-                .followRedirects(false)
+                .protocols(Arrays.asList(Protocol.HTTP_2, Protocol.HTTP_1_1))
+                // Local OkHttp handles resource/API requests, so follow redirects to reach the final HTTPS h2 endpoint.
+                .followSslRedirects(true)
+                .followRedirects(true)
                 .build();
     }
 

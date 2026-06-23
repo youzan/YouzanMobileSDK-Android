@@ -1,12 +1,10 @@
 package com.youzanyun.sdk.sample.cache.offline;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import com.youzan.androidsdk.YouzanLog;
 import com.youzanyun.sdk.sample.cache.WebResource;
 import com.youzanyun.sdk.sample.cache.config.CacheConfig;
-import com.youzanyun.sdk.sample.cache.config.MimeTypeFilter;
 import com.youzanyun.sdk.sample.cache.loader.OkHttpResourceLoader;
 import com.youzanyun.sdk.sample.cache.loader.ResourceLoader;
 import com.youzanyun.sdk.sample.cache.loader.SourceRequest;
@@ -18,23 +16,16 @@ import com.youzanyun.sdk.sample.cache.loader.SourceRequest;
 public class ForceRemoteResourceInterceptor implements Destroyable, ResourceInterceptor {
 
     private ResourceLoader mResourceLoader;
-    private MimeTypeFilter mMimeTypeFilter;
 
     ForceRemoteResourceInterceptor(Context context, CacheConfig cacheConfig) {
         mResourceLoader = new OkHttpResourceLoader(context);
-        mMimeTypeFilter = cacheConfig != null ? cacheConfig.getFilter() : null;
     }
 
     @Override
     public WebResource load(Chain chain) {
         CacheRequest request = chain.getRequest();
         String mime = request.getMime();
-        boolean isFilter;
-        if (TextUtils.isEmpty(mime)) {
-            isFilter = isFilterHtml();
-        } else {
-            isFilter = mMimeTypeFilter.isFilter(mime);
-        }
+        boolean isFilter = false;
 
 
         SourceRequest sourceRequest = new SourceRequest(request, isFilter);
@@ -49,12 +40,6 @@ public class ForceRemoteResourceInterceptor implements Destroyable, ResourceInte
 
     @Override
     public void destroy() {
-        if (mMimeTypeFilter != null) {
-            mMimeTypeFilter.clear();
-        }
     }
 
-    private boolean isFilterHtml() {
-        return mMimeTypeFilter.isFilter("text/html");
-    }
 }

@@ -36,16 +36,12 @@ public class OfflineServerImpl implements OfflineServer {
 
     private List<ResourceInterceptor> buildForceModeChain(Context context, CacheConfig cacheConfig) {
         if (mForceModeChainList == null) {
-            int interceptorsCount = (cacheConfig.isEnableImageCache() ? 4 : 3) + getBaseInterceptorsCount();
+            int interceptorsCount = 1 + getBaseInterceptorsCount();
             List<ResourceInterceptor> interceptors = new ArrayList<>(interceptorsCount);
             if (mBaseInterceptorList != null && !mBaseInterceptorList.isEmpty()) {
                 interceptors.addAll(mBaseInterceptorList);
             }
-            interceptors.add(new MemResourceInterceptor(cacheConfig));
-            interceptors.add(new DiskResourceInterceptor(cacheConfig, DiskResourceInterceptor.CACHE_TYPE_JS_CSS));
-            if (cacheConfig.isEnableImageCache()) {
-                interceptors.add(new DiskResourceInterceptor(cacheConfig, DiskResourceInterceptor.CACHE_TYPE_IMAGE));
-            }
+            OfflineCacheLogger.log("初始化", "资源链路=本地OkHttp请求，不读取/写入内存缓存和磁盘缓存");
             interceptors.add(new ForceRemoteResourceInterceptor(context, cacheConfig));
             mForceModeChainList = interceptors;
         }

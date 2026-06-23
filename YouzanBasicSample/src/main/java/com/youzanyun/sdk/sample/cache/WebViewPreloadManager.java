@@ -49,10 +49,10 @@ public final class WebViewPreloadManager {
     private static volatile Set<String> htmlCacheUrls = new LinkedHashSet<>();
     private static volatile boolean htmlPreloading;
     private static volatile boolean cacheEnabled = true;
-    private static volatile boolean reuseWebViewEnabled = true;
+    private static volatile boolean reuseWebViewEnabled = false;
     private static volatile boolean reuseResourceEnabled = true;
-    private static volatile boolean jsCssCacheEnabled = true;
-    private static volatile boolean imageCacheEnabled = true;
+    private static volatile boolean jsCssCacheEnabled = false;
+    private static volatile boolean imageCacheEnabled = false;
 
     private WebViewPreloadManager() {
     }
@@ -67,6 +67,7 @@ public final class WebViewPreloadManager {
         if (!TextUtils.isEmpty(homeUrl)) {
             htmlCacheUrls.add(homeUrl);
         }
+        
         ensureCacheInitialized(appContext);
         if (webViewCache != null) {
             webViewCache.setHtmlCacheUrls(htmlCacheUrls);

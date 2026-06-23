@@ -102,7 +102,7 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
         setupYouzan();
 
         WebSettings settings = mView.getSettings();
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         appContext = view.getContext().getApplicationContext();
         cachedWebViewCacheMode = settings.getCacheMode();
         cachedUserAgent = settings.getUserAgentString();
@@ -232,48 +232,46 @@ public class YouzanFragment extends WebViewFragment implements SwipeRefreshLayou
             @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                if (request == null || request.getUrl() == null) {
-                    return super.shouldInterceptRequest(view, request);
-                }
-                if (!MainActivity.isCacheEnabled() || !MainActivity.isReuseResourceEnabled()) {
-                    OfflineCacheLogger.log("资源分发", "总开关=" + MainActivity.isCacheEnabled() + "，资源复用=" + MainActivity.isReuseResourceEnabled() + "，直接交给 WebView 处理，url=" + request.getUrl());
-                    return super.shouldInterceptRequest(view, request);
-                }
-                if (request.getUrl().toString().contains("data.json")) {
-                    return super.shouldInterceptRequest(view, request);
-                }
-                WebViewCacheImpl cacheImpl = WebViewPreloadManager.getCacheImpl();
-                if (cacheImpl == null) {
-                    return super.shouldInterceptRequest(view, request);
-                }
-                String scheme = request.getUrl().getScheme();
-                String method = request.getMethod();
-                if ((TextUtils.equals("http", scheme) || TextUtils.equals("https", scheme))
-                        && "GET".equalsIgnoreCase(method)) {
-                    WebResourceResponse resourceResponse = cacheImpl.getResource(request, cachedWebViewCacheMode, cachedUserAgent);
-                    if (resourceResponse != null) {
-                        String source = cacheImpl.getLastResourceSource();
-                        if (WebResource.SOURCE_MEMORY.equals(source)
-                                || WebResource.SOURCE_NETWORK.equals(source)
-                                || WebResource.SOURCE_DISK.equals(source)) {
-                            OfflineCacheLogger.log(
-                                    "资源分发",
-                                    "Fragment返回缓存结果，来源=" + source + "，url=" + request.getUrl() + "，webView=" + getWebViewLabel()
-                            );
-                            return resourceResponse;
-                        }
-                        OfflineCacheLogger.log(
-                                "资源分发",
-                                "本次来源=" + source + "，交给WebView自行请求，url=" + request.getUrl() + "，webView=" + getWebViewLabel()
-                        );
-                    } else {
-                        OfflineCacheLogger.log(
-                                "资源分发",
-                                "Fragment未命中离线缓存，回退系统网络栈，url=" + request.getUrl() + "，webView=" + getWebViewLabel()
-                        );
-                    }
-                }
-                return super.shouldInterceptRequest(view, request);
+                return null;
+//                if (request == null || request.getUrl() == null) {
+//                    return super.shouldInterceptRequest(view, request);
+//                }
+//                if (!MainActivity.isCacheEnabled() || !MainActivity.isReuseResourceEnabled()) {
+//                    OfflineCacheLogger.log("资源分发", "总开关=" + MainActivity.isCacheEnabled() + "，资源复用=" + MainActivity.isReuseResourceEnabled() + "，直接交给 WebView 处理，url=" + request.getUrl());
+//                    return super.shouldInterceptRequest(view, request);
+//                }
+//                WebViewCacheImpl cacheImpl = WebViewPreloadManager.getCacheImpl();
+//                if (cacheImpl == null) {
+//                    return super.shouldInterceptRequest(view, request);
+//                }
+//                String scheme = request.getUrl().getScheme();
+//                String method = request.getMethod();
+//                if ((TextUtils.equals("http", scheme) || TextUtils.equals("https", scheme))
+//                        && "GET".equalsIgnoreCase(method)) {
+//                    WebResourceResponse resourceResponse = cacheImpl.getResource(request, cachedWebViewCacheMode, cachedUserAgent);
+//                    if (resourceResponse != null) {
+//                        String source = cacheImpl.getLastResourceSource();
+//                        if (WebResource.SOURCE_MEMORY.equals(source)
+//                                || WebResource.SOURCE_NETWORK.equals(source)
+//                                || WebResource.SOURCE_DISK.equals(source)) {
+//                            OfflineCacheLogger.log(
+//                                    "资源分发",
+//                                    "Fragment返回缓存结果，来源=" + source + "，url=" + request.getUrl() + "，webView=" + getWebViewLabel()
+//                            );
+//                            return resourceResponse;
+//                        }
+//                        OfflineCacheLogger.log(
+//                                "资源分发",
+//                                "本次来源=" + source + "，交给WebView自行请求，url=" + request.getUrl() + "，webView=" + getWebViewLabel()
+//                        );
+//                    } else {
+//                        OfflineCacheLogger.log(
+//                                "资源分发",
+//                                "Fragment未命中离线缓存，回退系统网络栈，url=" + request.getUrl() + "，webView=" + getWebViewLabel()
+//                        );
+//                    }
+//                }
+//                return super.shouldInterceptRequest(view, request);
             }
         };
     }
